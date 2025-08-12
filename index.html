@@ -385,7 +385,8 @@
         
         .disabled-section {
             opacity: 0.5;
-            pointer-events: none;
+            /* pointer-events: none; <-- REMOVED TO FIX BUG */
+            transition: opacity 0.3s ease;
         }
 
         .preset-buttons {
@@ -687,7 +688,8 @@
                 });
                 
                 this.elements.fractionBtn.addEventListener('click', () => {
-                    this.gameMode = 'fractions';
+                    // Toggle between fraction and standard modes
+                    this.gameMode = this.gameMode === 'fractions' ? 'standard' : 'fractions';
                     this.updateGameModeUI();
                 });
 
