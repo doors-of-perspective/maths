@@ -609,16 +609,19 @@
                 this.isGameOver = false;
 
                 this.fractionProblems = [
-                    { q: "¹/₂", a: 0.5 }, { q: "¹/₃", a: 1/3 }, { q: "²/₃", a: 2/3 },
-                    { q: "¹/₄", a: 0.25 }, { q: "³/₄", a: 0.75 }, { q: "¹/₅", a: 0.2 },
-                    { q: "²/₅", a: 0.4 }, { q: "³/₅", a: 0.6 }, { q: "⁴/₅", a: 0.8 },
-                    { q: "¹/₆", a: 1/6 }, { q: "⁵/₆", a: 5/6 }, { q: "¹/₇", a: 1/7 },
-                    { q: "²/₇", a: 2/7 }, { q: "³/₇", a: 3/7 }, { q: "⁴/₇", a: 4/7 },
-                    { q: "⁵/₇", a: 5/7 }, { q: "⁶/₇", a: 6/7 }, { q: "¹/₈", a: 0.125 },
-                    { q: "³/₈", a: 0.375 }, { q: "⁵/₈", a: 0.625 }, { q: "⁷/₈", a: 0.875 },
-                    { q: "¹/₁₁", a: 1/11 }, { q: "²/₁₁", a: 2/11 }, { q: "³/₁₁", a: 3/11 },
-                    { q: "⁴/₁₁", a: 4/11 }, { q: "⁵/₁₁", a: 5/11 }, { q: "⁶/₁₁", a: 6/11 },
-                    { q: "⁷/₁₁", a: 7/11 }, { q: "⁸/₁₁", a: 8/11 }, { q: "⁹/₁₁", a: 9/11 }, { q: "¹⁰/₁₁", a: 10/11 }
+                    // Terminating
+                    { q: "¹/₂", a: "0.5" }, { q: "¹/₄", a: "0.25" }, { q: "³/₄", a: "0.75" },
+                    { q: "¹/₅", a: "0.2" }, { q: "²/₅", a: "0.4" }, { q: "³/₅", a: "0.6" }, { q: "⁴/₅", a: "0.8" },
+                    { q: "¹/₈", a: "0.125" }, { q: "³/₈", a: "0.375" }, { q: "⁵/₈", a: "0.625" }, { q: "⁷/₈", a: "0.875" },
+                    // Recurring (4 digits)
+                    { q: "¹/₃", a: "0.3333" }, { q: "²/₃", a: "0.6666" },
+                    { q: "¹/₆", a: "0.1666" }, { q: "⁵/₆", a: "0.8333" },
+                    { q: "¹/₁₁", a: "0.0909" }, { q: "²/₁₁", a: "0.1818" }, { q: "³/₁₁", a: "0.2727" }, { q: "⁴/₁₁", a: "0.3636" }, 
+                    { q: "⁵/₁₁", a: "0.4545" }, { q: "⁶/₁₁", a: "0.5454" }, { q: "⁷/₁₁", a: "0.6363" }, { q: "⁸/₁₁", a: "0.7272" }, 
+                    { q: "⁹/₁₁", a: "0.8181" }, { q: "¹⁰/₁₁", a: "0.9090" },
+                    // Recurring Sevenths (6 digits)
+                    { q: "¹/₇", a: "0.142857" }, { q: "²/₇", a: "0.285714" }, { q: "³/₇", a: "0.428571" },
+                    { q: "⁴/₇", a: "0.571428" }, { q: "⁵/₇", a: "0.714285" }, { q: "⁶/₇", a: "0.857142" }
                 ];
                 
                 this.initializeElements();
@@ -765,7 +768,7 @@
                     const problem = this.fractionProblems[Math.floor(Math.random() * this.fractionProblems.length)];
                     this.currentProblem = {
                         text: `${problem.q} = ?`,
-                        answer: problem.a,
+                        answer: problem.a, // The answer is the pre-formatted string
                         type: 'fraction'
                     };
                     this.elements.challenge.textContent = this.currentProblem.text;
@@ -806,14 +809,6 @@
 
             randomInt(min, max) {
                 return Math.floor(Math.random() * (max - min + 1)) + min;
-            }
-            
-            formatDecimalAnswer(n) {
-                if (Math.abs(n) < 1 && n !== 0) {
-                     const s = n.toFixed(6);
-                     return s.replace(/0+$/, '').replace(/\.$/, '');
-                }
-                return n.toString();
             }
 
             startTimer() {
@@ -864,8 +859,8 @@
 
                 let isCorrect = false;
                 if (this.currentProblem.type === 'fraction') {
-                    const userAnswer = parseFloat(userAnswerValue);
-                    isCorrect = !isNaN(userAnswer) && Math.abs(userAnswer - this.currentProblem.answer) < 0.000001;
+                    // Direct string comparison for precise answer checking
+                    isCorrect = userAnswerValue.trim() === this.currentProblem.answer;
                 } else {
                     const userAnswer = parseInt(userAnswerValue);
                     isCorrect = !isNaN(userAnswer) && userAnswer === this.currentProblem.answer;
@@ -893,13 +888,7 @@
             }
 
             handleIncorrectAnswer() {
-                let correctAnswerString;
-                if (this.currentProblem.type === 'fraction') {
-                    correctAnswerString = this.formatDecimalAnswer(this.currentProblem.answer);
-                } else {
-                    correctAnswerString = this.currentProblem.answer;
-                }
-                this.elements.feedback.textContent = `Wrong! Answer was ${correctAnswerString}`;
+                this.elements.feedback.textContent = `Wrong! Answer was ${this.currentProblem.answer}`;
                 this.elements.feedback.className = "incorrect";
                 this.elements.challenge.classList.add('shake');
                 setTimeout(() => this.gameOver(), 1500);
@@ -907,13 +896,7 @@
 
             handleTimeout() {
                 this.gameActive = false;
-                let correctAnswerString;
-                 if (this.currentProblem.type === 'fraction') {
-                    correctAnswerString = this.formatDecimalAnswer(this.currentProblem.answer);
-                } else {
-                    correctAnswerString = this.currentProblem.answer;
-                }
-                this.elements.feedback.textContent = `Time's up! Answer was ${correctAnswerString}`;
+                this.elements.feedback.textContent = `Time's up! Answer was ${this.currentProblem.answer}`;
                 this.elements.feedback.className = "timeout";
                 setTimeout(() => this.gameOver(), 1500);
             }
