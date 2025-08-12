@@ -261,18 +261,27 @@
             backdrop-filter: blur(5px);
         }
 
-        .modal-content {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin: 5% auto;
-            padding: 40px;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 500px;
-            text-align: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            color: white;
-            max-height: 90vh;
-            overflow-y: auto;
+.modal-content {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    margin: 5% auto;
+    padding: 40px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    color: white;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* This is separate and outside the above block */
+@media (max-height: 700px) {
+    .modal-content {
+        padding-bottom: 80px;
+    }
+}
+
         }
 
         .close-button {
@@ -841,14 +850,28 @@
                 else this.elements.progressBar.style.background = 'linear-gradient(90deg, #3498db, #2980b9)';
             }
 
-            handleInput(e) {
-                let value = e.target.value.replace(/[^-0-9.]/g, '');
-                // Allow only one decimal point
-                if ((value.match(/\./g) || []).length > 1) {
-                    value = value.substring(0, value.lastIndexOf('.'));
-                }
-                e.target.value = value;
+           handleInput(e) {
+    let value = e.target.value.replace(/[^-0-9.]/g, '');
+    if ((value.match(/\./g) || []).length > 1) {
+        value = value.substring(0, value.lastIndexOf('.'));
+    }
+    e.target.value = value;
+
+    // Auto-check on correct answer
+    if (this.currentProblem) {
+        if (this.currentProblem.type === 'fraction') {
+            if (value.trim() === this.currentProblem.answer) {
+                this.checkAnswer();
             }
+        } else {
+            const numValue = parseInt(value, 10);
+            if (!isNaN(numValue) && numValue === this.currentProblem.answer) {
+                this.checkAnswer();
+            }
+        }
+    }
+}
+
 
             checkAnswer() {
                 if (!this.gameActive) return;
