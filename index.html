@@ -951,38 +951,52 @@
                 this.elements.level.textContent = this.level;
                 this.elements.highScore.textContent = this.highScore;
             }
+gameOver() {
+    if (this.isGameOver) return;
+    this.isGameOver = true;
 
-            gameOver() {
-                if (this.isGameOver) return;
-                this.isGameOver = true;
+    let difficultyDesc;
+    if (this.gameMode === 'fractions') {
+        difficultyDesc = 'Fractions to Decimals';
+    } else {
+        difficultyDesc = `${this.digitCount}-digit ${this.enabledOperations.join(', ')}`;
+    }
 
-                let difficultyDesc;
-                if (this.gameMode === 'fractions') {
-                    difficultyDesc = 'Fractions to Decimals';
-                } else {
-                    difficultyDesc = `${this.digitCount}-digit ${this.enabledOperations.join(', ')}`;
-                }
-                
-                if (this.score > this.highScore) {
-                    this.highScore = this.score;
-                    localStorage.setItem('mathNinjaHighScore', this.highScore.toString());
-                    this.elements.modalMessage.innerHTML = `
-                        <div style="font-size: 1.5em; margin-bottom: 10px;">🎉 NEW HIGH SCORE! 🎉</div>
-                        <div>Score: ${this.score}</div>
-                        <div>Level Reached: ${this.level}</div>
-                        <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Mode: ${difficultyDesc}</div>`;
-                } else {
-                    this.elements.modalMessage.innerHTML = `
-                        <div style="font-size: 1.3em; margin-bottom: 10px;">Game Over!</div>
-                        <div>Score: ${this.score}</div>
-                        <div>Level Reached: ${this.level}</div>
-                        <div>High Score: ${this.highScore}</div>
-                        <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Mode: ${difficultyDesc}</div>`;
-                }
-                
-                this.elements.modal.style.display = 'block';
-                setTimeout(() => { this.isGameOver = false; }, 500);
-            }
+    // Get the last question and answer
+    const finalQuestion = this.currentProblem.type === 'fraction'
+        ? this.currentProblem.text.replace('= ?', '')
+        : `${this.currentProblem.num1} ${this.currentProblem.operation} ${this.currentProblem.num2}`;
+    const finalAnswer = this.currentProblem.answer;
+
+    let message = `
+        <div style="font-size: 1.3em; margin-bottom: 10px;">Game Over!</div>
+        <div>Score: ${this.score}</div>
+        <div>Level Reached: ${this.level}</div>
+        <div>High Score: ${this.highScore}</div>
+        <div>Last Question: ${finalQuestion}</div>
+        <div>Correct Answer: ${finalAnswer}</div>
+        <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Mode: ${difficultyDesc}</div>
+    `;
+
+    if (this.score > this.highScore) {
+        this.highScore = this.score;
+        localStorage.setItem('mathNinjaHighScore', this.highScore.toString());
+        message = `
+            <div style="font-size: 1.5em; margin-bottom: 10px;">🎉 NEW HIGH SCORE! 🎉</div>
+            <div>Score: ${this.score}</div>
+            <div>Level Reached: ${this.level}</div>
+            <div>Last Question: ${finalQuestion}</div>
+            <div>Correct Answer: ${finalAnswer}</div>
+            <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Mode: ${difficultyDesc}</div>
+        `;
+    }
+
+    this.elements.modalMessage.innerHTML = message;
+    this.elements.modal.style.display = 'block';
+
+    // Prevent multiple popups in quick succession
+    setTimeout(() => { this.isGameOver = false; }, 500);
+}
 
             restartGame() {
                 if (this.isRestarting) return;
