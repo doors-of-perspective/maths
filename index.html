@@ -155,7 +155,7 @@
         }
 
         #challenge {
-            font-size: 3em;
+            font-size: 2.5em;
             font-weight: 800;
             margin-bottom: 20px;
             min-height: 80px;
@@ -165,6 +165,7 @@
             background: rgba(255, 255, 255, 0.1);
             border-radius: 15px;
             padding: 20px;
+            word-break: break-all;
         }
 
         #user-answer {
@@ -260,27 +261,24 @@
             backdrop-filter: blur(5px);
         }
 
-.modal-content {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    margin: 5% auto;
-    padding: 40px;
-    border-radius: 20px;
-    width: 90%;
-    max-width: 500px;
-    text-align: center;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-    color: white;
-    max-height: 90vh;
-    overflow-y: auto;
-}
+        .modal-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 5% auto;
+            padding: 40px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            color: white;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
 
-/* This is separate and outside the above block */
-@media (max-height: 700px) {
-    .modal-content {
-        padding-bottom: 80px;
-    }
-}
-
+        @media (max-height: 700px) {
+            .modal-content {
+                padding-bottom: 80px;
+            }
         }
 
         .close-button {
@@ -349,7 +347,6 @@
             cursor: not-allowed;
         }
 
-
         .slider-value {
             text-align: center;
             font-size: 1.2em;
@@ -393,9 +390,13 @@
         
         .disabled-section {
             opacity: 0.5;
-            /* pointer-events: none; <-- REMOVED TO FIX BUG */
             transition: opacity 0.3s ease;
         }
+        
+        .disabled-section input, .disabled-section button {
+             pointer-events: none;
+        }
+
 
         .preset-buttons {
             display: flex;
@@ -462,7 +463,7 @@
             }
             
             #challenge {
-                font-size: 2em;
+                font-size: 1.8em;
                 min-height: 60px;
             }
             
@@ -550,13 +551,18 @@
                 <div class="settings-section" id="difficulty-settings-container">
                     <h3>Difficulty</h3>
                     <div class="slider-container">
-                        <label>Number of Digits:</label>
-                        <input type="range" id="digit-slider" min="2" max="9" step="1">
-                        <div class="slider-value" id="digit-value">2 digits</div>
+                        <label>Digits (First Number):</label>
+                        <input type="range" id="digit-slider-1" min="1" max="7" step="1">
+                        <div class="slider-value" id="digit-value-1">2 digits</div>
+                    </div>
+                    <div class="slider-container">
+                        <label>Digits (Second Number):</label>
+                        <input type="range" id="digit-slider-2" min="1" max="7" step="1">
+                        <div class="slider-value" id="digit-value-2">2 digits</div>
                     </div>
                 </div>
 
-                <div class="settings-section">
+                <div class="settings-section" id="operations-settings-container">
                     <h3>Operations</h3>
                     <div id="standard-ops-container">
                         <div class="operation-buttons">
@@ -569,13 +575,12 @@
                             <button class="preset-btn" data-preset="all">All Operations</button>
                             <button class="preset-btn" data-preset="basic">Add + Subtract</button>
                             <button class="preset-btn" data-preset="advanced">Multiply + Divide</button>
-                            <button class="preset-btn" data-preset="addition">Addition Only</button>
-                            <button class="preset-btn" data-preset="multiplication">Multiplication Only</button>
                         </div>
                     </div>
                     <div style="text-align: center; margin: 15px 0; color: rgba(255,255,255,0.7); font-size: 0.9em;">- OR -</div>
-                    <div class="operation-buttons" style="grid-template-columns: 1fr;">
-                        <button class="operation-btn" data-op="fractions">Fractions to Decimals Practice</button>
+                    <div class="operation-buttons" style="grid-template-columns: 1fr 1fr;">
+                        <button class="operation-btn" data-op="fractions">Fractions Mode</button>
+                        <button class="operation-btn" data-op="guesstimation">Guesstimation</button>
                     </div>
                 </div>
 
@@ -606,7 +611,8 @@
                 this.highScore = parseInt(localStorage.getItem('mathNinjaHighScore')) || 0;
                 this.gameMode = localStorage.getItem('mathNinjaGameMode') || 'standard';
                 this.timeLimit = parseInt(localStorage.getItem('mathNinjaTimeLimit')) || 30;
-                this.digitCount = parseInt(localStorage.getItem('mathNinjaDigitCount')) || 2;
+                this.digitCount1 = parseInt(localStorage.getItem('mathNinjaDigitCount1')) || 2;
+                this.digitCount2 = parseInt(localStorage.getItem('mathNinjaDigitCount2')) || 2;
                 this.enabledOperations = JSON.parse(localStorage.getItem('mathNinjaOperations')) || 
                     ['addition', 'subtraction', 'multiplication', 'division'];
                 
@@ -616,22 +622,11 @@
                 this.timer = null;
                 this.isRestarting = false;
                 this.isGameOver = false;
-                this.askedFractionIndices = []; // MODIFIED: To track asked fraction questions
+                this.askedFractionIndices = [];
+                this.guesstimationTolerance = 0.20; // 20% tolerance
 
                 this.fractionProblems = [
-                    // Terminating
-                    { q: "¹/₂", a: "0.5" }, { q: "¹/₄", a: "0.25" }, { q: "³/₄", a: "0.75" },
-                    { q: "¹/₅", a: "0.2" }, { q: "²/₅", a: "0.4" }, { q: "³/₅", a: "0.6" }, { q: "⁴/₅", a: "0.8" },
-                    { q: "¹/₈", a: "0.125" }, { q: "³/₈", a: "0.375" }, { q: "⁵/₈", a: "0.625" }, { q: "⁷/₈", a: "0.875" },
-                    // Recurring (4 digits)
-                    { q: "¹/₃", a: "0.3333" }, { q: "²/₃", a: "0.6666" },
-                    { q: "¹/₆", a: "0.1666" }, { q: "⁵/₆", a: "0.8333" },
-                    { q: "¹/₁₁", a: "0.0909" }, { q: "²/₁₁", a: "0.1818" }, { q: "³/₁₁", a: "0.2727" }, { q: "⁴/₁₁", a: "0.3636" }, 
-                    { q: "⁵/₁₁", a: "0.4545" }, { q: "⁶/₁₁", a: "0.5454" }, { q: "⁷/₁₁", a: "0.6363" }, { q: "⁸/₁₁", a: "0.7272" }, 
-                    { q: "⁹/₁₁", a: "0.8181" }, { q: "¹⁰/₁₁", a: "0.9090" },
-                    // Recurring Sevenths (6 digits)
-                    { q: "¹/₇", a: "0.142857" }, { q: "²/₇", a: "0.285714" }, { q: "³/₇", a: "0.428571" },
-                    { q: "⁴/₇", a: "0.571428" }, { q: "⁵/₇", a: "0.714285" }, { q: "⁶/₇", a: "0.857142" }
+                    { q: "¹/₂", a: "0.5" }, { q: "¹/₄", a: "0.25" }, { q: "³/₄", a: "0.75" }, { q: "¹/₅", a: "0.2" }, { q: "²/₅", a: "0.4" }, { q: "³/₅", a: "0.6" }, { q: "⁴/₅", a: "0.8" }, { q: "¹/₈", a: "0.125" }, { q: "³/₈", a: "0.375" }, { q: "⁵/₈", a: "0.625" }, { q: "⁷/₈", a: "0.875" }, { q: "¹/₃", a: "0.3333" }, { q: "²/₃", a: "0.6666" }, { q: "¹/₆", a: "0.1666" }, { q: "⁵/₆", a: "0.8333" }, { q: "¹/₁₁", a: "0.0909" }, { q: "²/₁₁", a: "0.1818" }, { q: "³/₁₁", a: "0.2727" }, { q: "⁴/₁₁", a: "0.3636" }, { q: "⁵/₁₁", a: "0.4545" }, { q: "⁶/₁₁", a: "0.5454" }, { q: "⁷/₁₁", a: "0.6363" }, { q: "⁸/₁₁", a: "0.7272" }, { q: "⁹/₁₁", a: "0.8181" }, { q: "¹⁰/₁₁", a: "0.9090" }, { q: "¹/₇", a: "0.142857" }, { q: "²/₇", a: "0.285714" }, { q: "³/₇", a: "0.428571" }, { q: "⁴/₇", a: "0.571428" }, { q: "⁵/₇", a: "0.714285" }, { q: "⁶/₇", a: "0.857142" }
                 ];
                 
                 this.initializeElements();
@@ -662,12 +657,14 @@
                     timerSlider: document.getElementById('timer-slider'),
                     timerValue: document.getElementById('timer-value'),
                     difficultySettingsContainer: document.getElementById('difficulty-settings-container'),
-                    digitSlider: document.getElementById('digit-slider'),
-                    digitValue: document.getElementById('digit-value'),
+                    digitSlider1: document.getElementById('digit-slider-1'),
+                    digitValue1: document.getElementById('digit-value-1'),
+                    digitSlider2: document.getElementById('digit-slider-2'),
+                    digitValue2: document.getElementById('digit-value-2'),
                     settingsSave: document.getElementById('settings-save'),
+                    operationsSettingsContainer: document.getElementById('operations-settings-container'),
                     standardOpsContainer: document.getElementById('standard-ops-container'),
-                    operationBtns: document.querySelectorAll('[data-op]:not([data-op="fractions"])'),
-                    fractionBtn: document.querySelector('[data-op="fractions"]'),
+                    operationBtns: document.querySelectorAll('[data-op]'),
                     presetBtns: document.querySelectorAll('.preset-btn')
                 };
             }
@@ -680,75 +677,84 @@
                 this.elements.modalButton.addEventListener('click', () => this.restartGame());
                 this.elements.modalClose.addEventListener('click', () => this.closeModal());
                 
-                // Settings events
                 this.elements.settingsButton.addEventListener('click', () => this.showSettings());
                 this.elements.settingsClose.addEventListener('click', () => this.hideSettings());
                 this.elements.timerSlider.addEventListener('input', () => this.updateTimerPreview());
-                this.elements.digitSlider.addEventListener('input', () => this.updateDigitPreview());
+                this.elements.digitSlider1.addEventListener('input', () => this.updateDigitPreviews());
+                this.elements.digitSlider2.addEventListener('input', () => this.updateDigitPreviews());
                 this.elements.settingsSave.addEventListener('click', () => this.saveSettings());
                 
-                // Operation button events
                 this.elements.operationBtns.forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        this.gameMode = 'standard';
-                        this.toggleOperation(btn);
-                        this.updateGameModeUI();
-                    });
-                });
-                
-                this.elements.fractionBtn.addEventListener('click', () => {
-                    // Toggle between fraction and standard modes
-                    this.gameMode = this.gameMode === 'fractions' ? 'standard' : 'fractions';
-                    this.updateGameModeUI();
+                    btn.addEventListener('click', () => this.handleModeSelection(btn));
                 });
 
-                // Preset button events
                 this.elements.presetBtns.forEach(btn => {
                     btn.addEventListener('click', () => {
                         this.gameMode = 'standard';
-                        this.applyPreset(btn.dataset.preset)
+                        this.applyPreset(btn.dataset.preset);
                         this.updateGameModeUI();
                     });
                 });
+            }
+            
+            handleModeSelection(btn) {
+                const mode = btn.dataset.op;
+                const standardOps = ['addition', 'subtraction', 'multiplication', 'division'];
+
+                if (standardOps.includes(mode)) {
+                    this.gameMode = 'standard';
+                    this.toggleOperation(mode);
+                } else {
+                    // Toggle between special modes and standard, or switch between special modes
+                    this.gameMode = this.gameMode === mode ? 'standard' : mode;
+                }
+                this.updateGameModeUI();
             }
 
             initializeSettings() {
                 this.elements.timerSlider.value = this.timeLimit;
-                this.elements.digitSlider.value = this.digitCount;
+                this.elements.digitSlider1.value = this.digitCount1;
+                this.elements.digitSlider2.value = this.digitCount2;
                 this.updateTimerPreview();
-                this.updateDigitPreview();
+                this.updateDigitPreviews();
                 this.updateGameModeUI();
             }
-
+            
             updateGameModeUI() {
-                if (this.gameMode === 'fractions') {
-                    this.elements.fractionBtn.classList.add('active');
-                    this.elements.operationBtns.forEach(btn => btn.classList.remove('active'));
-                    this.elements.difficultySettingsContainer.classList.add('disabled-section');
-                    this.elements.standardOpsContainer.classList.add('disabled-section');
-                    this.elements.digitSlider.disabled = true;
-                    this.elements.userAnswer.inputMode = 'decimal';
-                } else { // standard mode
-                    this.elements.fractionBtn.classList.remove('active');
+                // Disable everything first
+                this.elements.difficultySettingsContainer.classList.add('disabled-section');
+                this.elements.operationsSettingsContainer.classList.add('disabled-section');
+                this.elements.operationBtns.forEach(b => b.classList.remove('active'));
+
+                // Enable based on mode
+                if (this.gameMode === 'standard') {
                     this.elements.difficultySettingsContainer.classList.remove('disabled-section');
-                    this.elements.standardOpsContainer.classList.remove('disabled-section');
-                    this.elements.digitSlider.disabled = false;
-                    this.elements.userAnswer.inputMode = 'numeric';
-                    this.updateOperationButtons(); // Re-sync standard buttons
+                    this.elements.operationsSettingsContainer.classList.remove('disabled-section');
+                    this.enabledOperations.forEach(opName => {
+                        const btn = this.elements.operationsSettingsContainer.querySelector(`[data-op=${opName}]`);
+                        if(btn) btn.classList.add('active');
+                    });
+                } else if (this.gameMode === 'fractions') {
+                    this.elements.operationsSettingsContainer.classList.remove('disabled-section');
+                    this.elements.operationsSettingsContainer.querySelector('[data-op="fractions"]').classList.add('active');
+                } else if (this.gameMode === 'guesstimation') {
+                    this.elements.difficultySettingsContainer.classList.remove('disabled-section');
+                    this.elements.operationsSettingsContainer.classList.remove('disabled-section');
+                    this.elements.operationsSettingsContainer.querySelector('[data-op="guesstimation"]').classList.add('active');
                 }
-            }
-
-            updateOperationButtons() {
-                this.elements.operationBtns.forEach(btn => {
-                    const isEnabled = this.enabledOperations.includes(btn.dataset.op);
-                    btn.classList.toggle('active', isEnabled);
-                });
-            }
-
-            toggleOperation(btn) {
-                const operation = btn.dataset.op;
-                const isCurrentlyActive = this.enabledOperations.includes(operation);
                 
+                 if (this.gameMode !== 'standard' && this.gameMode !== 'guesstimation') {
+                    this.elements.difficultySettingsContainer.classList.add('disabled-section');
+                 }
+                 if(this.gameMode !== 'standard') {
+                    this.elements.standardOpsContainer.classList.add('disabled-section');
+                 } else {
+                     this.elements.standardOpsContainer.classList.remove('disabled-section');
+                 }
+            }
+            
+            toggleOperation(operation) {
+                const isCurrentlyActive = this.enabledOperations.includes(operation);
                 if (isCurrentlyActive) {
                     if (this.enabledOperations.length > 1) {
                         this.enabledOperations = this.enabledOperations.filter(op => op !== operation);
@@ -763,75 +769,84 @@
                     case 'all': this.enabledOperations = ['addition', 'subtraction', 'multiplication', 'division']; break;
                     case 'basic': this.enabledOperations = ['addition', 'subtraction']; break;
                     case 'advanced': this.enabledOperations = ['multiplication', 'division']; break;
-                    case 'addition': this.enabledOperations = ['addition']; break;
-                    case 'multiplication': this.enabledOperations = ['multiplication']; break;
                 }
             }
 
-            getMinMax() {
-                const min = Math.pow(10, this.digitCount - 1);
-                const max = Math.pow(10, this.digitCount) - 1;
+            getMinMax(digitCount) {
+                const min = Math.pow(10, digitCount - 1);
+                const max = Math.pow(10, digitCount) - 1;
                 return { min, max };
             }
 
             generateProblem() {
-                if (this.gameMode === 'fractions') {
-                    // MODIFIED: Logic to avoid repeating fraction questions
-                    const availableIndices = this.fractionProblems
-                        .map((_, index) => index)
-                        .filter(index => !this.askedFractionIndices.includes(index));
-
+                 if (this.gameMode === 'fractions') {
+                    const availableIndices = this.fractionProblems.map((_, index) => index).filter(index => !this.askedFractionIndices.includes(index));
                     if (availableIndices.length === 0) {
-                        this.handleFractionsComplete();
-                        return; // Stop if all questions are done
+                        this.handleFractionsComplete(); return;
                     }
-
                     const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
-                    this.askedFractionIndices.push(randomIndex); // Mark as asked
-
+                    this.askedFractionIndices.push(randomIndex);
                     const problem = this.fractionProblems[randomIndex];
-                    this.currentProblem = {
-                        text: `${problem.q} = ?`,
-                        answer: problem.a,
-                        type: 'fraction'
-                    };
+                    this.currentProblem = { text: `${problem.q} = ?`, answer: problem.a, type: 'fraction' };
                     this.elements.challenge.textContent = this.currentProblem.text;
+                } else if (this.gameMode === 'guesstimation') {
+                    const { min: min1, max: max1 } = this.getMinMax(this.digitCount1);
+                    const { min: min2, max: max2 } = this.getMinMax(this.digitCount2);
+                    let num1 = this.randomInt(min1, max1);
+                    let num2 = this.randomInt(min2, max2);
+                    const ops = ['addition', 'subtraction', 'multiplication'];
+                    const operation = ops[Math.floor(Math.random() * ops.length)];
+                    let operationSymbol, answer;
+
+                    switch (operation) {
+                        case 'addition': operationSymbol = "+"; answer = num1 + num2; break;
+                        case 'multiplication': operationSymbol = "×"; answer = num1 * num2; break;
+                        case 'subtraction': if (num2 > num1) [num1, num2] = [num2, num1]; operationSymbol = "−"; answer = num1 - num2; break;
+                    }
+                    this.currentProblem = { num1, num2, operation: operationSymbol, answer, type: 'guesstimation' };
+                    this.elements.challenge.textContent = `Estimate: ${num1.toLocaleString()} ${operationSymbol} ${num2.toLocaleString()}`;
                 } else { // Standard mode
                     if (this.enabledOperations.length === 0) this.enabledOperations = ['addition'];
                     const operation = this.enabledOperations[Math.floor(Math.random() * this.enabledOperations.length)];
-                    const { min, max } = this.getMinMax();
+                    const { min: min1, max: max1 } = this.getMinMax(this.digitCount1);
+                    const { min: min2, max: max2 } = this.getMinMax(this.digitCount2);
                     let num1, num2, operationSymbol, answer;
 
                     switch (operation) {
                         case "addition":
-                            num1 = this.randomInt(min, max); num2 = this.randomInt(min, max);
+                            num1 = this.randomInt(min1, max1); num2 = this.randomInt(min2, max2);
                             operationSymbol = "+"; answer = num1 + num2;
                             break;
                         case "subtraction":
-                            num1 = this.randomInt(min, max); num2 = this.randomInt(min, num1);
+                            num1 = this.randomInt(min1, max1); num2 = this.randomInt(min2, max2);
+                            if(num2 > num1) [num1, num2] = [num2, num1]; // Ensure positive result
                             operationSymbol = "−"; answer = num1 - num2;
                             break;
                         case "multiplication":
-                            num1 = this.randomInt(min, max);
-                            const maxMultiplier = Math.min(99, Math.floor(max / 10));
-                            num2 = this.randomInt(2, maxMultiplier);
+                             do { num1 = this.randomInt(min1, max1); } while (num1 === 1 || num1 === 10);
+                             do { num2 = this.randomInt(min2, max2); } while (num2 === 1 || num2 === 10);
                             operationSymbol = "×"; answer = num1 * num2;
                             break;
                         case "division":
-                            const divisor = this.randomInt(2, Math.min(99, Math.floor(max / 10)));
-                            const quotient = this.randomInt(min, Math.floor(max / divisor));
-                            num1 = divisor * quotient; num2 = divisor;
-                            operationSymbol = "÷"; answer = quotient;
+                             let divisor, quotient;
+                             do { divisor = this.randomInt(min2, max2); } while (divisor === 1 || divisor === 10 || divisor === 0);
+                             const quotientMin = Math.pow(10, this.digitCount1 - this.digitCount2); // Approximate quotient size
+                             quotient = this.randomInt(Math.max(2, quotientMin), max1);
+                             num1 = divisor * quotient; num2 = divisor;
+                             operationSymbol = "÷"; answer = quotient;
                             break;
                     }
                     this.currentProblem = { num1, num2, operation: operationSymbol, answer, type: operation };
-                    this.elements.challenge.textContent = `${num1} ${operationSymbol} ${num2} = ?`;
+                    this.elements.challenge.textContent = `${num1.toLocaleString()} ${operationSymbol} ${num2.toLocaleString()} = ?`;
                 }
                 
+                this.elements.userAnswer.value = '';
                 setTimeout(() => this.startTimer(), 100);
             }
 
             randomInt(min, max) {
+                min = Math.ceil(min);
+                max = Math.floor(max);
                 return Math.floor(Math.random() * (max - min + 1)) + min;
             }
 
@@ -850,8 +865,8 @@
 
             updateTimerDisplay() {
                 this.elements.time.textContent = `${this.timeLeft}s`;
-                if (this.timeLeft <= 3) this.elements.time.style.color = '#e74c3c';
-                else if (this.timeLeft <= 5) this.elements.time.style.color = '#f39c12';
+                 if (this.timeLeft <= 5) this.elements.time.style.color = '#e74c3c';
+                else if (this.timeLeft <= 10) this.elements.time.style.color = '#f39c12';
                 else this.elements.time.style.color = '#3498db';
             }
 
@@ -870,36 +885,36 @@
                 }
                 e.target.value = value;
 
-                if (this.currentProblem) {
+                if (this.currentProblem && this.gameMode !== 'guesstimation') {
                     if (this.currentProblem.type === 'fraction') {
-                        if (value.trim() === this.currentProblem.answer) {
-                            this.checkAnswer();
-                        }
+                        if (value.trim() === this.currentProblem.answer) this.checkAnswer();
                     } else {
                         const numValue = parseInt(value, 10);
-                        if (!isNaN(numValue) && numValue === this.currentProblem.answer) {
-                            this.checkAnswer();
-                        }
+                        if (!isNaN(numValue) && numValue === this.currentProblem.answer) this.checkAnswer();
                     }
                 }
             }
 
-
             checkAnswer() {
                 if (!this.gameActive) return;
-                
-                const userAnswerValue = this.elements.userAnswer.value;
-                if (userAnswerValue.trim() === '') return;
+                const userAnswerValue = this.elements.userAnswer.value.trim();
+                if (userAnswerValue === '') return;
 
                 this.gameActive = false;
                 clearInterval(this.timer);
+                const userAnswer = parseFloat(userAnswerValue);
+                if(isNaN(userAnswer)) { this.handleIncorrectAnswer(); return; }
 
                 let isCorrect = false;
                 if (this.currentProblem.type === 'fraction') {
-                    isCorrect = userAnswerValue.trim() === this.currentProblem.answer;
+                    isCorrect = userAnswerValue === this.currentProblem.answer;
+                } else if (this.currentProblem.type === 'guesstimation') {
+                    const actual = this.currentProblem.answer;
+                    const lowerBound = actual * (1 - this.guesstimationTolerance);
+                    const upperBound = actual * (1 + this.guesstimationTolerance);
+                    isCorrect = userAnswer >= lowerBound && userAnswer <= upperBound;
                 } else {
-                    const userAnswer = parseInt(userAnswerValue);
-                    isCorrect = !isNaN(userAnswer) && userAnswer === this.currentProblem.answer;
+                    isCorrect = userAnswer === this.currentProblem.answer;
                 }
 
                 if (isCorrect) {
@@ -924,15 +939,18 @@
             }
 
             handleIncorrectAnswer() {
-                this.elements.feedback.textContent = `Wrong! Answer was ${this.currentProblem.answer}`;
+                this.elements.feedback.textContent = `Answer: ${this.currentProblem.answer.toLocaleString()}`;
                 this.elements.feedback.className = "incorrect";
                 this.elements.challenge.classList.add('shake');
-                setTimeout(() => this.gameOver(), 1500);
+                setTimeout(() => {
+                    this.elements.challenge.classList.remove('shake');
+                    this.gameOver();
+                }, 1500);
             }
 
             handleTimeout() {
                 this.gameActive = false;
-                this.elements.feedback.textContent = `Time's up! Answer was ${this.currentProblem.answer}`;
+                this.elements.feedback.textContent = `Time's up! Answer: ${this.currentProblem.answer.toLocaleString()}`;
                 this.elements.feedback.className = "timeout";
                 setTimeout(() => this.gameOver(), 1500);
             }
@@ -951,7 +969,6 @@
             }
 
             nextProblem() {
-                this.elements.userAnswer.value = '';
                 this.elements.feedback.textContent = '';
                 this.updateDisplay();
                 this.generateProblem();
@@ -968,91 +985,63 @@
                 this.isGameOver = true;
 
                 let difficultyDesc;
-                if (this.gameMode === 'fractions') {
-                    difficultyDesc = 'Fractions to Decimals';
-                } else {
-                    difficultyDesc = `${this.digitCount}-digit ${this.enabledOperations.join(', ')}`;
-                }
-
-                const finalQuestion = this.currentProblem.type === 'fraction'
-                    ? this.currentProblem.text.replace('= ?', '')
-                    : `${this.currentProblem.num1} ${this.currentProblem.operation} ${this.currentProblem.num2}`;
-                const finalAnswer = this.currentProblem.answer;
+                if (this.gameMode === 'fractions') difficultyDesc = 'Fractions Mode';
+                else if (this.gameMode === 'guesstimation') difficultyDesc = `Guesstimation (${this.digitCount1} by ${this.digitCount2} digits)`;
+                else difficultyDesc = `${this.digitCount1} by ${this.digitCount2} digits, ${this.enabledOperations.join(', ')}`;
+                
+                const finalQuestion = this.elements.challenge.textContent.replace(' = ?','').replace('Estimate: ','');
+                const finalAnswer = this.currentProblem.answer.toLocaleString();
 
                 let message = `
                     <div style="font-size: 1.3em; margin-bottom: 10px;">Game Over!</div>
-                    <div>Score: ${this.score}</div>
-                    <div>Level Reached: ${this.level}</div>
-                    <div>High Score: ${this.highScore}</div>
-                    <div>Last Question: ${finalQuestion}</div>
+                    <div>Score: ${this.score} | Level: ${this.level} | High Score: ${this.highScore}</div>
+                    <div style="margin-top:10px;">Last Question: ${finalQuestion}</div>
                     <div>Correct Answer: ${finalAnswer}</div>
-                    <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Mode: ${difficultyDesc}</div>
-                `;
+                    <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Mode: ${difficultyDesc}</div>`;
 
                 if (this.score > this.highScore) {
                     this.highScore = this.score;
                     localStorage.setItem('mathNinjaHighScore', this.highScore.toString());
                     message = `
                         <div style="font-size: 1.5em; margin-bottom: 10px;">🎉 NEW HIGH SCORE! 🎉</div>
-                        <div>Score: ${this.score}</div>
-                        <div>Level Reached: ${this.level}</div>
-                        <div>Last Question: ${finalQuestion}</div>
+                        <div>Score: ${this.score} | Level Reached: ${this.level}</div>
+                        <div style="margin-top:10px;">Last Question: ${finalQuestion}</div>
                         <div>Correct Answer: ${finalAnswer}</div>
-                        <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Mode: ${difficultyDesc}</div>
-                    `;
+                        <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Mode: ${difficultyDesc}</div>`;
                 }
 
                 this.elements.modalMessage.innerHTML = message;
                 this.elements.modal.style.display = 'block';
-
                 setTimeout(() => { this.isGameOver = false; }, 500);
             }
             
-            // NEW: Function to handle completing all fraction problems
             handleFractionsComplete() {
-                if (this.isGameOver) return;
-                this.isGameOver = true;
                 this.gameActive = false;
                 clearInterval(this.timer);
-
                 const message = `
                     <div style="font-size: 1.5em; margin-bottom: 10px;">🎉 Congratulations! 🎉</div>
                     <div>You've completed all fraction problems!</div>
-                    <div style="margin-top: 15px;">Final Score: ${this.score}</div>
-                    <div>Level Reached: ${this.level}</div>
-                `;
-                
+                    <div style="margin-top: 15px;">Final Score: ${this.score} | Level Reached: ${this.level}</div>`;
                 this.elements.modalMessage.innerHTML = message;
                 this.elements.modalButton.textContent = "Play Again";
                 this.elements.modal.style.display = 'block';
-                
-                setTimeout(() => { this.isGameOver = false; }, 500);
             }
 
             restartGame() {
                 if (this.isRestarting) return;
                 this.isRestarting = true;
                 
-                this.score = 0;
-                this.level = 1;
-                this.streak = 0;
-                this.streakTarget = 5;
-                this.timeLimit = parseInt(this.elements.timerSlider.value) || 30;
-                this.gameActive = false;
-                this.askedFractionIndices = []; // MODIFIED: Reset the list of asked fractions
-                
+                this.score = 0; this.level = 1; this.streak = 0; this.streakTarget = 5;
+                this.gameActive = false; this.askedFractionIndices = [];
                 if (this.timer) { clearInterval(this.timer); this.timer = null; }
                 
-                this.elements.userAnswer.value = '';
-                this.elements.feedback.textContent = '';
+                this.elements.userAnswer.value = ''; this.elements.feedback.textContent = '';
                 this.elements.challenge.classList.remove('pulse', 'shake');
                 this.elements.progressBar.style.width = '100%';
                 this.elements.progressBar.style.background = 'linear-gradient(90deg, #3498db, #2980b9)';
-                this.elements.modalButton.textContent = "Try Again"; // MODIFIED: Reset button text
+                this.elements.modalButton.textContent = "Try Again";
                 
-                this.updateDisplay();
-                this.updateStreakProgress();
-                this.closeModal();
+                this.updateDisplay(); this.updateStreakProgress(); this.closeModal();
                 
                 setTimeout(() => {
                     this.generateProblem();
@@ -1077,26 +1066,26 @@
                 this.elements.timerValue.textContent = `${this.elements.timerSlider.value}s`;
             }
 
-            updateDigitPreview() {
-                const value = this.elements.digitSlider.value;
-                this.elements.digitValue.textContent = `${value} digit${value > 1 ? 's' : ''}`;
+            updateDigitPreviews() {
+                const val1 = this.elements.digitSlider1.value;
+                const val2 = this.elements.digitSlider2.value;
+                this.elements.digitValue1.textContent = `${val1} digit${val1 > 1 ? 's' : ''}`;
+                this.elements.digitValue2.textContent = `${val2} digit${val2 > 1 ? 's' : ''}`;
             }
 
             saveSettings() {
-                const newTimeLimit = parseInt(this.elements.timerSlider.value);
-                const newDigitCount = parseInt(this.elements.digitSlider.value);
+                this.timeLimit = parseInt(this.elements.timerSlider.value);
+                this.digitCount1 = parseInt(this.elements.digitSlider1.value);
+                this.digitCount2 = parseInt(this.elements.digitSlider2.value);
                 
                 if (this.gameMode === 'standard' && this.enabledOperations.length === 0) {
                     this.enabledOperations = ['addition'];
-                    this.updateOperationButtons();
                 }
                 
-                this.timeLimit = newTimeLimit;
-                this.digitCount = newDigitCount;
-                
                 localStorage.setItem('mathNinjaGameMode', this.gameMode);
-                localStorage.setItem('mathNinjaTimeLimit', newTimeLimit.toString());
-                localStorage.setItem('mathNinjaDigitCount', newDigitCount.toString());
+                localStorage.setItem('mathNinjaTimeLimit', this.timeLimit.toString());
+                localStorage.setItem('mathNinjaDigitCount1', this.digitCount1.toString());
+                localStorage.setItem('mathNinjaDigitCount2', this.digitCount2.toString());
                 localStorage.setItem('mathNinjaOperations', JSON.stringify(this.enabledOperations));
                 
                 this.hideSettings();
