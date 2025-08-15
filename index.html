@@ -356,15 +356,15 @@
 
         .operation-buttons {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
             gap: 10px;
             margin-bottom: 20px;
         }
 
         .operation-btn {
-            padding: 12px 20px;
+            padding: 12px;
             font-family: 'Martian Mono', monospace;
-            font-size: 1em;
+            font-size: 0.9em;
             font-weight: 600;
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 10px;
@@ -479,10 +479,6 @@
                 margin: 10% auto;
                 padding: 30px;
             }
-
-            .operation-buttons {
-                grid-template-columns: 1fr;
-            }
         }
     </style>
 </head>
@@ -551,7 +547,7 @@
                 <div class="settings-section" id="difficulty-settings-container">
                     <h3>Difficulty</h3>
                     <div class="slider-container">
-                        <label>Digits (First Number):</label>
+                        <label>Digits (First Number / Percent):</label>
                         <input type="range" id="digit-slider-1" min="1" max="7" step="1">
                         <div class="slider-value" id="digit-value-1">2 digits</div>
                     </div>
@@ -570,6 +566,7 @@
                             <button class="operation-btn" data-op="subtraction">Subtraction (−)</button>
                             <button class="operation-btn" data-op="multiplication">Multiplication (×)</button>
                             <button class="operation-btn" data-op="division">Division (÷)</button>
+                            <button class="operation-btn" data-op="percentage">Percentage (%)</button>
                         </div>
                         <div class="preset-buttons">
                             <button class="preset-btn" data-preset="all">All Operations</button>
@@ -614,7 +611,7 @@
                 this.digitCount1 = parseInt(localStorage.getItem('mathNinjaDigitCount1')) || 2;
                 this.digitCount2 = parseInt(localStorage.getItem('mathNinjaDigitCount2')) || 2;
                 this.enabledOperations = JSON.parse(localStorage.getItem('mathNinjaOperations')) || 
-                    ['addition', 'subtraction', 'multiplication', 'division'];
+                    ['addition', 'subtraction', 'multiplication', 'division', 'percentage'];
                 
                 this.timeLeft = this.timeLimit;
                 this.currentProblem = null;
@@ -699,13 +696,12 @@
             
             handleModeSelection(btn) {
                 const mode = btn.dataset.op;
-                const standardOps = ['addition', 'subtraction', 'multiplication', 'division'];
+                const standardOps = ['addition', 'subtraction', 'multiplication', 'division', 'percentage'];
 
                 if (standardOps.includes(mode)) {
                     this.gameMode = 'standard';
                     this.toggleOperation(mode);
                 } else {
-                    // Toggle between special modes and standard, or switch between special modes
                     this.gameMode = this.gameMode === mode ? 'standard' : mode;
                 }
                 this.updateGameModeUI();
@@ -721,12 +717,10 @@
             }
             
             updateGameModeUI() {
-                // Disable everything first
                 this.elements.difficultySettingsContainer.classList.add('disabled-section');
                 this.elements.operationsSettingsContainer.classList.add('disabled-section');
                 this.elements.operationBtns.forEach(b => b.classList.remove('active'));
 
-                // Enable based on mode
                 if (this.gameMode === 'standard') {
                     this.elements.difficultySettingsContainer.classList.remove('disabled-section');
                     this.elements.operationsSettingsContainer.classList.remove('disabled-section');
@@ -765,10 +759,11 @@
             }
 
             applyPreset(preset) {
+                const allOps = ['addition', 'subtraction', 'multiplication', 'division', 'percentage'];
                 switch (preset) {
-                    case 'all': this.enabledOperations = ['addition', 'subtraction', 'multiplication', 'division']; break;
+                    case 'all': this.enabledOperations = allOps; break;
                     case 'basic': this.enabledOperations = ['addition', 'subtraction']; break;
-                    case 'advanced': this.enabledOperations = ['multiplication', 'division']; break;
+                    case 'advanced': this.enabledOperations = ['multiplication', 'division', 'percentage']; break;
                 }
             }
 
@@ -781,9 +776,7 @@
             generateProblem() {
                  if (this.gameMode === 'fractions') {
                     const availableIndices = this.fractionProblems.map((_, index) => index).filter(index => !this.askedFractionIndices.includes(index));
-                    if (availableIndices.length === 0) {
-                        this.handleFractionsComplete(); return;
-                    }
+                    if (availableIndices.length === 0) { this.handleFractionsComplete(); return; }
                     const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
                     this.askedFractionIndices.push(randomIndex);
                     const problem = this.fractionProblems[randomIndex];
@@ -810,7 +803,7 @@
                     const operation = this.enabledOperations[Math.floor(Math.random() * this.enabledOperations.length)];
                     const { min: min1, max: max1 } = this.getMinMax(this.digitCount1);
                     const { min: min2, max: max2 } = this.getMinMax(this.digitCount2);
-                    let num1, num2, operationSymbol, answer;
+                    let num1, num2, operationSymbol, answer, text;
 
                     switch (operation) {
                         case "addition":
@@ -819,7 +812,7 @@
                             break;
                         case "subtraction":
                             num1 = this.randomInt(min1, max1); num2 = this.randomInt(min2, max2);
-                            if(num2 > num1) [num1, num2] = [num2, num1]; // Ensure positive result
+                            if(num2 > num1) [num1, num2] = [num2, num1];
                             operationSymbol = "−"; answer = num1 - num2;
                             break;
                         case "multiplication":
@@ -829,15 +822,28 @@
                             break;
                         case "division":
                              let divisor, quotient;
-                             do { divisor = this.randomInt(min2, max2); } while (divisor === 1 || divisor === 10 || divisor === 0);
-                             const quotientMin = Math.pow(10, this.digitCount1 - this.digitCount2); // Approximate quotient size
-                             quotient = this.randomInt(Math.max(2, quotientMin), max1);
+                             do { divisor = this.randomInt(min2, max2); } while (divisor <= 1 || divisor === 10);
+                             const quotientMin = Math.max(2, Math.pow(10, this.digitCount1 - 1));
+                             const quotientMax = Math.max(quotientMin, Math.pow(10, this.digitCount1) -1);
+                             quotient = this.randomInt(quotientMin, quotientMax);
                              num1 = divisor * quotient; num2 = divisor;
                              operationSymbol = "÷"; answer = quotient;
                             break;
+                        case "percentage":
+                             let percent = this.randomInt(1, Math.max(2, max1));
+                             if (Math.random() > 0.5) percent += 0.5;
+                             num1 = percent;
+                             num2 = this.randomInt(min2, max2);
+                             if (Math.random() > 0.7) num2 = this.randomInt(1, Math.max(2, max2/100)) * 100;
+                             if (num2 === 0) num2 = 100;
+                             answer = (num1 / 100) * num2;
+                             text = `${num1}% of ${num2.toLocaleString()}`;
+                             operationSymbol = "% of";
+                            break;
                     }
+                    if(!text) text = `${num1.toLocaleString()} ${operationSymbol} ${num2.toLocaleString()}`;
                     this.currentProblem = { num1, num2, operation: operationSymbol, answer, type: operation };
-                    this.elements.challenge.textContent = `${num1.toLocaleString()} ${operationSymbol} ${num2.toLocaleString()} = ?`;
+                    this.elements.challenge.textContent = `${text} = ?`;
                 }
                 
                 this.elements.userAnswer.value = '';
@@ -886,11 +892,11 @@
                 e.target.value = value;
 
                 if (this.currentProblem && this.gameMode !== 'guesstimation') {
-                    if (this.currentProblem.type === 'fraction') {
-                        if (value.trim() === this.currentProblem.answer) this.checkAnswer();
-                    } else {
-                        const numValue = parseInt(value, 10);
-                        if (!isNaN(numValue) && numValue === this.currentProblem.answer) this.checkAnswer();
+                    const parsedValue = parseFloat(value);
+                    if (!isNaN(parsedValue)) {
+                        if (Math.abs(parsedValue - this.currentProblem.answer) < 0.0001) {
+                            this.checkAnswer();
+                        }
                     }
                 }
             }
@@ -898,7 +904,12 @@
             checkAnswer() {
                 if (!this.gameActive) return;
                 const userAnswerValue = this.elements.userAnswer.value.trim();
-                if (userAnswerValue === '') return;
+                if (userAnswerValue === '') {
+                    if (this.gameMode === 'guesstimation') { // Don't penalize empty on guesstimation, let timeout handle it
+                         this.handleIncorrectAnswer();
+                         return;
+                    }
+                }
 
                 this.gameActive = false;
                 clearInterval(this.timer);
@@ -913,8 +924,8 @@
                     const lowerBound = actual * (1 - this.guesstimationTolerance);
                     const upperBound = actual * (1 + this.guesstimationTolerance);
                     isCorrect = userAnswer >= lowerBound && userAnswer <= upperBound;
-                } else {
-                    isCorrect = userAnswer === this.currentProblem.answer;
+                } else { // Standard modes, including percentage
+                    isCorrect = Math.abs(userAnswer - this.currentProblem.answer) < 0.0001;
                 }
 
                 if (isCorrect) {
@@ -949,10 +960,18 @@
             }
 
             handleTimeout() {
-                this.gameActive = false;
-                this.elements.feedback.textContent = `Time's up! Answer: ${this.currentProblem.answer.toLocaleString()}`;
-                this.elements.feedback.className = "timeout";
-                setTimeout(() => this.gameOver(), 1500);
+                clearInterval(this.timer);
+                if (this.gameActive) {
+                    // If guesstimation has a value, check it. Otherwise, time out.
+                    if (this.gameMode === 'guesstimation' && this.elements.userAnswer.value.trim() !== '') {
+                        this.checkAnswer();
+                    } else {
+                        this.gameActive = false;
+                        this.elements.feedback.textContent = `Time's up! Answer: ${this.currentProblem.answer.toLocaleString()}`;
+                        this.elements.feedback.className = "timeout";
+                        setTimeout(() => this.gameOver(), 1500);
+                    }
+                }
             }
 
             levelUp() {
