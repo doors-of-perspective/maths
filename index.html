@@ -6,39 +6,137 @@
   <title>Student Test Hub</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 50px;
-      background: #f4f4f4;
+      font-family: 'Courier New', 'Monaco', monospace;
+      background: #fafafa;
+      color: #333;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
     }
-    h1 {
-      font-size: 2.5em;
+    
+    .org-header {
+      border-bottom: 1px solid #ddd;
       margin-bottom: 30px;
+      padding-bottom: 10px;
     }
-    a {
-      display: block;
-      margin: 15px;
-      padding: 15px;
+    
+    .org-title {
+      font-size: 1.8em;
+      font-weight: bold;
+      color: #2e8b57;
+      margin: 0;
+    }
+    
+    .org-subtitle {
+      font-style: italic;
+      color: #666;
+      margin: 5px 0;
+    }
+    
+    .org-section {
+      margin: 20px 0;
+    }
+    
+    .org-level-1 {
+      font-size: 1.4em;
+      font-weight: bold;
+      color: #4169e1;
+      margin: 20px 0 10px 0;
+    }
+    
+    .org-level-2 {
       font-size: 1.2em;
-      color: white;
-      background: #667eea;
-      text-decoration: none;
-      border-radius: 8px;
-      width: 250px;
-      margin-left: auto;
-      margin-right: auto;
-      transition: 0.3s;
+      font-weight: bold;
+      color: #8b4513;
+      margin: 15px 0 8px 10px;
     }
-    a:hover {
-      background: #764ba2;
+    
+    .org-item {
+      margin: 5px 0 5px 20px;
+    }
+    
+    .org-link {
+      color: #1e90ff;
+      text-decoration: underline;
+    }
+    
+    .org-link:hover {
+      background: #e6f3ff;
+    }
+    
+    .org-todo {
+      color: #ff6347;
+      font-weight: bold;
+    }
+    
+    .org-done {
+      color: #32cd32;
+      font-weight: bold;
+    }
+    
+    .edit-instructions {
+      background: #f0f8ff;
+      border: 1px dashed #87ceeb;
+      padding: 15px;
+      margin: 20px 0;
+      font-size: 0.9em;
+    }
+    
+    .edit-instructions h3 {
+      color: #4682b4;
+      margin-top: 0;
     }
   </style>
 </head>
 <body>
-  <h1>Student Test Hub</h1>
-  <p>Select a test page:</p>
-  <a href="bingo_week_2.html">Bingo Week 2</a>
-  <a href="Mathsmagic.html">Maths Magic</a>
-  <!-- Add more links as you create new pages -->
+  <div class="org-header">
+    <div class="org-title">* Student Test Hub</div>
+    <div class="org-subtitle">Random tests and experiments</div>
+  </div>
+
+  <div class="edit-instructions">
+    <h3>📝 HOW TO ADD NEW LINKS:</h3>
+    <p><strong>1. Find the section below that says "** Test Pages"</strong></p>
+    <p><strong>2. Add your new link like this:</strong></p>
+    <p style="font-family: monospace; background: #fff; padding: 5px;">- [[your-file-name.html][Description of Your Test]]</p>
+    <p><strong>3. Replace "your-file-name.html" with your actual filename</strong></p>
+    <p><strong>4. Replace "Description of Your Test" with what you want the link to say</strong></p>
+  </div>
+
+  <div class="org-section">
+    <div class="org-level-1">* Table of Contents</div>
+    <div class="org-item">- <a href="#current-tests" class="org-link">Current Tests</a></div>
+    <div class="org-item">- <a href="#todo-list" class="org-link">TODO List</a></div>
+  </div>
+
+  <div class="org-section" id="current-tests">
+    <div class="org-level-1">* Current Tests</div>
+    
+    <div class="org-level-2" id="test-pages">** Test Pages</div>
+    
+    <!-- 🔽 ADD YOUR NEW LINKS HERE 🔽 -->
+    <div class="org-item">- <a href="bingo_week_2.html" class="org-link">Bingo Week 2</a></div>
+    <div class="org-item">- <a href="Mathsmagic.html" class="org-link">Maths Magic</a></div>
+   <div class="org-item">- <a href="Camera_Terminology_Game.html" class="org-link">Maths Magic</a></div>
+
+    <!-- 🔼 ADD YOUR NEW LINKS ABOVE THIS LINE 🔼 -->
+    
+  </div>
+
+  <div class="org-section" id="todo-list">
+    <div class="org-level-1">* TODO List</div>
+    <div class="org-item"><span class="org-todo">TODO</span> Add more interactive tests</div>
+    <div class="org-item"><span class="org-todo">TODO</span> Create categories for different subjects</div>
+    <div class="org-item"><span class="org-done">DONE</span> Set up basic index page</div>
+  </div>
+
+  <div class="org-section">
+    <div class="org-level-1">* Notes</div>
+    <div class="org-item">- Repository hosted on Netlify (or similar)</div>
+    <div class="org-item">- Easy to maintain with simple HTML editing</div>
+    <div class="org-item">- Org-mode inspired formatting for familiar feel</div>
+  </div>
+
 </body>
 </html>
