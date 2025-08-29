@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Terminology Match-Up</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .drop-zone {
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .drop-zone.drag-over {
+            background-color: #3b82f6; /* blue-500 */
+            transform: scale(1.02);
+        }
+        .draggable {
+            cursor: grab;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .draggable:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+        .correct {
+            background-color: #10b981 !important; /* emerald-500 */
+            color: white;
+        }
+        .incorrect {
+            background-color: #ef4444 !important; /* red-500 */
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen p-4">
+
+    <div id="game-container" class="w-full max-w-6xl mx-auto bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8">
+        
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <h1 class="text-3xl md:text-4xl font-bold text-blue-400">Camera Terminology Match-Up</h1>
+            <p id="instructions" class="text-gray-400 mt-2">Drag the 'Definition' to the correct 'Term'. You have 5 minutes!</p>
+        </div>
+
+        <!-- Timer and Controls -->
+        <div class="flex flex-col md:flex-row items-center justify-between mb-8 bg-gray-900/50 p-4 rounded-lg">
+            <div id="timer" class="text-4xl font-mono font-bold text-yellow-400 mb-4 md:mb-0">05:00</div>
+            <div class="flex space-x-4">
+                <button id="startButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-transform transform hover:scale-105">Start Game</button>
+                <button id="checkButton" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition-transform transform hover:scale-105" disabled>Check Answers</button>
+                <button id="againButton" class="hidden bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg transition-transform transform hover:scale-105">Play Again</button>
+            </div>
+        </div>
+
+        <!-- Main Content: Columns -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <!-- Column 1: Drop Zones (Terms) -->
+            <div class="space-y-4">
+                <h2 class="text-2xl font-semibold text-center text-gray-300 mb-4">Term</h2>
+                <div data-answer="pan" class="drop-zone bg-gray-700 p-4 rounded-lg min-h-[80px] flex items-center"><h3 class="font-bold text-lg">Pan</h3></div>
+                <div data-answer="tilt" class="drop-zone bg-gray-700 p-4 rounded-lg min-h-[80px] flex items-center"><h3 class="font-bold text-lg">Tilt</h3></div>
+                <div data-answer="iso" class="drop-zone bg-gray-700 p-4 rounded-lg min-h-[80px] flex items-center"><h3 class="font-bold text-lg">ISO</h3></div>
+                <div data-answer="shutter" class="drop-zone bg-gray-700 p-4 rounded-lg min-h-[80px] flex items-center"><h3 class="font-bold text-lg">Shutter Speed</h3></div>
+                <div data-answer="aperture" class="drop-zone bg-gray-700 p-4 rounded-lg min-h-[80px] flex items-center"><h3 class="font-bold text-lg">Aperture</h3></div>
+                <div data-answer="thirds" class="drop-zone bg-gray-700 p-4 rounded-lg min-h-[80px] flex items-center"><h3 class="font-bold text-lg">Rule of Thirds</h3></div>
+            </div>
+
+            <!-- Column 2: Draggable Items (Definitions) -->
+            <div id="draggable-items-pool" class="space-y-4">
+                <h2 class="text-2xl font-semibold text-center text-gray-300 mb-4">Definition</h2>
+                <div draggable="true" data-answer="aperture" class="draggable bg-gray-600 p-4 rounded-lg text-center">An adjustable opening in a lens that controls the amount of light entering the camera, measured in f-stops.</div>
+                <div draggable="true" data-answer="shutter" class="draggable bg-gray-600 p-4 rounded-lg text-center">The amount of time that each video frame is exposed to light, typically shown as a fraction of a second.</div>
+                <div draggable="true" data-answer="pan" class="draggable bg-gray-600 p-4 rounded-lg text-center">The camera sweeps horizontally from a fixed position, either left or right.</div>
+                <div draggable="true" data-answer="thirds" class="draggable bg-gray-600 p-4 rounded-lg text-center">A guideline suggesting dividing a frame into nine equal parts to create balanced compositions.</div>
+                <div draggable="true" data-answer="iso" class="draggable bg-gray-600 p-4 rounded-lg text-center">Adjusts your camera’s digital sensitivity to light.</div>
+                <div draggable="true" data-answer="tilt" class="draggable bg-gray-600 p-4 rounded-lg text-center">The camera moves along a fixed vertical axis, either up to down or down to up.</div>
+            </div>
+        </div>
+
+        <!-- Results & Bonus Round Section -->
+        <div id="results-section" class="text-center mt-8 hidden">
+            <h2 id="results-title" class="text-3xl font-bold"></h2>
+            <p id="results-score" class="text-xl mt-2"></p>
+            <button id="bonusButton" class="hidden mt-6 bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-8 rounded-lg text-lg transition-transform transform hover:scale-105">Unlock Bonus Round!</button>
+        </div>
+
+        <div id="bonus-round" class="hidden mt-8 bg-gray-900/50 p-6 rounded-lg">
+            <h2 class="text-2xl font-bold text-yellow-400 text-center">🌟 Bonus Round 🌟</h2>
+            <p class="text-center mt-2 text-gray-300">Pick one of the terms above. Describe a storytelling situation where you would use it to create a specific feeling or emotion.</p>
+            <textarea id="bonus-answer" class="w-full mt-4 p-2 bg-gray-700 rounded-md text-white focus:ring-2 focus:ring-yellow-400 focus:outline-none" rows="3" placeholder="e.g., I would use a slow TILT UP to make a character seem powerful and heroic..."></textarea>
+            <p class="text-center mt-4 text-sm text-gray-500">This is a creative thinking exercise!</p>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DOM Element Selection ---
+        const startButton = document.getElementById('startButton');
+        const checkButton = document.getElementById('checkButton');
+        const againButton = document.getElementById('againButton');
+        const timerDisplay = document.getElementById('timer');
+        const draggablePool = document.getElementById('draggable-items-pool');
+        const resultsSection = document.getElementById('results-section');
+        const resultsTitle = document.getElementById('results-title');
+        const resultsScore = document.getElementById('results-score');
+        const bonusButton = document.getElementById('bonusButton');
+        const bonusRound = document.getElementById('bonus-round');
+        const instructions = document.getElementById('instructions');
+
+        let draggables = document.querySelectorAll('.draggable');
+        let dropZones = document.querySelectorAll('.drop-zone');
+
+        // --- Game State Variables ---
+        let timerInterval;
+        let timeLeft = 300; // 5 minutes in seconds
+        let gameActive = false;
+
+        // --- Event Listeners ---
+        startButton.addEventListener('click', startGame);
+        checkButton.addEventListener('click', checkAnswers);
+        againButton.addEventListener('click', resetGame);
+        
+        // --- Drag and Drop Logic ---
+        function addDragDropListeners() {
+            draggables = document.querySelectorAll('.draggable');
+            dropZones = document.querySelectorAll('.drop-zone');
+
+            draggables.forEach(draggable => {
+                draggable.addEventListener('dragstart', () => {
+                    if (!gameActive) return;
+                    draggable.classList.add('dragging');
+                });
+
+                draggable.addEventListener('dragend', () => {
+                    draggable.classList.remove('dragging');
+                });
+            });
+
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    if (!gameActive) return;
+                    zone.classList.add('drag-over');
+                });
+                zone.addEventListener('dragleave', () => {
+                    zone.classList.remove('drag-over');
+                });
+                zone.addEventListener('drop', e => {
+                    e.preventDefault();
+                    if (!gameActive) return;
+                    zone.classList.remove('drag-over');
+                    const draggable = document.querySelector('.dragging');
+                    if (draggable) {
+                         // Allow only one item per zone. If zone has an item, swap them.
+                        const existingItem = zone.querySelector('.draggable');
+                        if (existingItem) {
+                            draggablePool.appendChild(existingItem);
+                        }
+                        zone.appendChild(draggable);
+                    }
+                });
+            });
+        }
+        
+        // --- Game Functions ---
+        function startGame() {
+            gameActive = true;
+            startButton.classList.add('hidden');
+            checkButton.classList.remove('hidden');
+            checkButton.disabled = false;
+            instructions.textContent = "The clock is ticking! Match them up.";
+            
+            // Shuffle draggable items
+            const items = Array.from(draggablePool.children).slice(1); // Exclude h2
+            items.sort(() => Math.random() - 0.5);
+            items.forEach(item => draggablePool.appendChild(item));
+
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            timeLeft--;
+            const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const seconds = (timeLeft % 60).toString().padStart(2, '0');
+            timerDisplay.textContent = `${minutes}:${seconds}`;
+
+            if (timeLeft <= 0) {
+                timerDisplay.textContent = "00:00";
+                timerDisplay.classList.add('text-red-500');
+                checkAnswers();
+            } else if (timeLeft <= 30) {
+                timerDisplay.classList.add('text-red-500');
+            }
+        }
+
+        function checkAnswers() {
+            if (!gameActive) return;
+            gameActive = false;
+            clearInterval(timerInterval);
+            checkButton.classList.add('hidden');
+            againButton.classList.remove('hidden');
+
+            let score = 0;
+            const total = 6;
+
+            dropZones.forEach(zone => {
+                const droppedItem = zone.querySelector('.draggable');
+                const zoneAnswer = zone.dataset.answer;
+
+                if (droppedItem) {
+                    const itemAnswer = droppedItem.dataset.answer;
+                    if (itemAnswer === zoneAnswer) {
+                        score++;
+                        droppedItem.classList.add('correct');
+                    } else {
+                        droppedItem.classList.add('incorrect');
+                    }
+                }
+            });
+
+            // Display results
+            resultsSection.classList.remove('hidden');
+            resultsTitle.textContent = score === total ? "🎉 Perfect Score! 🎉" : "Good Try!";
+            resultsScore.textContent = `You scored ${score} out of ${total}.`;
+
+            if (score === total) {
+                bonusButton.classList.remove('hidden');
+                bonusButton.addEventListener('click', () => {
+                    bonusRound.classList.remove('hidden');
+                    bonusButton.classList.add('hidden');
+                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                });
+            }
+        }
+
+        function resetGame() {
+            gameActive = false;
+            clearInterval(timerInterval);
+            
+            // Reset timer
+            timeLeft = 300;
+            timerDisplay.textContent = "05:00";
+            timerDisplay.classList.remove('text-red-500');
+
+            // Reset buttons
+            againButton.classList.add('hidden');
+            startButton.classList.remove('hidden');
+            checkButton.classList.add('hidden');
+            
+            // Reset UI text
+            instructions.textContent = "Drag the 'Definition' to the correct 'Term'. You have 5 minutes!";
+
+            // Reset draggable items
+            draggables.forEach(item => {
+                item.classList.remove('correct', 'incorrect');
+                draggablePool.appendChild(item);
+            });
+
+            // Hide results
+            resultsSection.classList.add('hidden');
+            bonusRound.classList.add('hidden');
+            bonusButton.classList.add('hidden');
+        }
+
+        // Initial setup
+        addDragDropListeners();
+        checkButton.classList.add('hidden');
+
+    </script>
+</body>
+</html>
