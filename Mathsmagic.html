@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MathNinja Advanced - Custom Difficulty</title>
+    <title>Mathemagics - Custom Difficulty</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Martian+Mono:wght@100..800&display=swap" rel="stylesheet">
@@ -195,6 +195,12 @@
             transform: scale(1.05);
             box-shadow: 0 4px 20px rgba(78, 205, 196, 0.4);
         }
+        
+        #user-answer:disabled {
+            background: #eee;
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
 
         #progress-bar-container {
             margin-top: 20px;
@@ -218,6 +224,8 @@
             align-items: center;
             margin-bottom: 20px;
             font-weight: 600;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         #timer {
@@ -240,6 +248,27 @@
         .correct { color: #4ecdc4; }
         .incorrect { color: #ff6b6b; }
         .timeout { color: #ffa726; }
+
+        .game-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .control-btn {
+            cursor: pointer;
+            padding: 5px 10px;
+            background: rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 5px;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+        }
+        
+        .control-btn:hover {
+            background: rgba(0,0,0,0.1);
+            transform: translateY(-1px);
+        }
 
         #description {
             text-align: center;
@@ -393,8 +422,9 @@
             transition: opacity 0.3s ease;
         }
         
-        .disabled-section input, .disabled-section button {
+        .disabled-section input, .disabled-section button, .disabled-section label {
              pointer-events: none;
+             cursor: not-allowed;
         }
 
 
@@ -485,7 +515,7 @@
 <body>
     <div class="main-wrapper">
         <header>
-            <div id="logo">MathNinja Advanced</div>
+            <div id="logo">Mathemagics</div>
         </header>
 
         <main id="game-container">
@@ -521,7 +551,10 @@
 
             <div id="timer-feedback">
                 <div id="timer">Time: <span id="time">30s</span></div>
-                <div id="settings-button" style="cursor: pointer; padding: 5px 10px; background: rgba(255,255,255,0.2); border-radius: 5px; font-size: 0.9em;">⚙️ Settings</div>
+                <div class="game-controls">
+                     <div id="restart-button" class="control-btn">🔄️ Restart</div>
+                     <div id="settings-button" class="control-btn">⚙️ Settings</div>
+                </div>
                 <div id="feedback"></div>
             </div>
 
@@ -538,7 +571,7 @@
                 <div class="settings-section">
                     <h3>Timer</h3>
                     <div class="slider-container">
-                        <label>Timer Duration:</label>
+                        <label id="timer-label">Timer Duration:</label>
                         <input type="range" id="timer-slider" min="5" max="60" step="5">
                         <div class="slider-value" id="timer-value">30s</div>
                     </div>
@@ -547,12 +580,12 @@
                 <div class="settings-section" id="difficulty-settings-container">
                     <h3>Difficulty</h3>
                     <div class="slider-container">
-                        <label>Digits (First Number / Percent):</label>
-                        <input type="range" id="digit-slider-1" min="1" max="7" step="1">
+                        <label id="digit-label-1">Digits (First Number / Percent):</label>
+                        <input type="range" id="digit-slider-1" min="1" max="15" step="1">
                         <div class="slider-value" id="digit-value-1">2 digits</div>
                     </div>
-                    <div class="slider-container">
-                        <label>Digits (Second Number):</label>
+                    <div class="slider-container" id="digit-slider-2-container">
+                        <label id="digit-label-2">Digits (Second Number):</label>
                         <input type="range" id="digit-slider-2" min="1" max="7" step="1">
                         <div class="slider-value" id="digit-value-2">2 digits</div>
                     </div>
@@ -575,9 +608,10 @@
                         </div>
                     </div>
                     <div style="text-align: center; margin: 15px 0; color: rgba(255,255,255,0.7); font-size: 0.9em;">- OR -</div>
-                    <div class="operation-buttons" style="grid-template-columns: 1fr 1fr;">
+                    <div class="operation-buttons" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
                         <button class="operation-btn" data-op="fractions">Fractions Mode</button>
                         <button class="operation-btn" data-op="guesstimation">Guesstimation</button>
+                        <button class="operation-btn" data-op="memorise">Memorise Number</button>
                     </div>
                 </div>
 
@@ -594,29 +628,30 @@
         </div>
 
         <footer>
-            <p>Advanced Math Challenge - Custom difficulty and operations!</p>
+            <p>Mathemagics - Custom difficulty and operations!</p>
         </footer>
     </div>
 
     <script>
-        class MathNinjaAdvanced {
+        class Mathemagics {
             constructor() {
                 this.score = 0;
                 this.level = 1;
                 this.streak = 0;
                 this.streakTarget = 5;
-                this.highScore = parseInt(localStorage.getItem('mathNinjaHighScore')) || 0;
-                this.gameMode = localStorage.getItem('mathNinjaGameMode') || 'standard';
-                this.timeLimit = parseInt(localStorage.getItem('mathNinjaTimeLimit')) || 30;
-                this.digitCount1 = parseInt(localStorage.getItem('mathNinjaDigitCount1')) || 2;
-                this.digitCount2 = parseInt(localStorage.getItem('mathNinjaDigitCount2')) || 2;
-                this.enabledOperations = JSON.parse(localStorage.getItem('mathNinjaOperations')) || 
+                this.highScore = parseInt(localStorage.getItem('mathemagicsHighScore')) || 0;
+                this.gameMode = localStorage.getItem('mathemagicsGameMode') || 'standard';
+                this.timeLimit = parseInt(localStorage.getItem('mathemagicsTimeLimit')) || 30;
+                this.digitCount1 = parseInt(localStorage.getItem('mathemagicsDigitCount1')) || 2;
+                this.digitCount2 = parseInt(localStorage.getItem('mathemagicsDigitCount2')) || 2;
+                this.enabledOperations = JSON.parse(localStorage.getItem('mathemagicsOperations')) || 
                     ['addition', 'subtraction', 'multiplication', 'division', 'percentage'];
                 
                 this.timeLeft = this.timeLimit;
                 this.currentProblem = null;
-                this.gameActive = false;
-                this.timer = null;
+                this.gameActive = false; // Is the user currently supposed to be inputting an answer?
+                this.timer = null; // Main game timer for answering
+                this.phaseTimer = null; // Timer for non-interactive phases (memorise, waiting)
                 this.isRestarting = false;
                 this.isGameOver = false;
                 this.askedFractionIndices = [];
@@ -649,14 +684,18 @@
                     modalButton: document.getElementById('modal-button'),
                     modalClose: document.getElementById('modal-close'),
                     settingsButton: document.getElementById('settings-button'),
+                    restartButton: document.getElementById('restart-button'),
                     settingsModal: document.getElementById('settings-modal'),
                     settingsClose: document.getElementById('settings-close'),
                     timerSlider: document.getElementById('timer-slider'),
                     timerValue: document.getElementById('timer-value'),
+                    timerLabel: document.getElementById('timer-label'),
                     difficultySettingsContainer: document.getElementById('difficulty-settings-container'),
                     digitSlider1: document.getElementById('digit-slider-1'),
                     digitValue1: document.getElementById('digit-value-1'),
+                    digitLabel1: document.getElementById('digit-label-1'),
                     digitSlider2: document.getElementById('digit-slider-2'),
+                    digitSlider2Container: document.getElementById('digit-slider-2-container'),
                     digitValue2: document.getElementById('digit-value-2'),
                     settingsSave: document.getElementById('settings-save'),
                     operationsSettingsContainer: document.getElementById('operations-settings-container'),
@@ -675,6 +714,7 @@
                 this.elements.modalClose.addEventListener('click', () => this.closeModal());
                 
                 this.elements.settingsButton.addEventListener('click', () => this.showSettings());
+                this.elements.restartButton.addEventListener('click', () => this.restartGame());
                 this.elements.settingsClose.addEventListener('click', () => this.hideSettings());
                 this.elements.timerSlider.addEventListener('input', () => this.updateTimerPreview());
                 this.elements.digitSlider1.addEventListener('input', () => this.updateDigitPreviews());
@@ -701,7 +741,7 @@
                 if (standardOps.includes(mode)) {
                     this.gameMode = 'standard';
                     this.toggleOperation(mode);
-                } else {
+                } else { // Special modes (fractions, guesstimation, memorise)
                     this.gameMode = this.gameMode === mode ? 'standard' : mode;
                 }
                 this.updateGameModeUI();
@@ -715,36 +755,46 @@
                 this.updateDigitPreviews();
                 this.updateGameModeUI();
             }
+
+            updateSettingsLabels() {
+                 if (this.gameMode === 'memorise') {
+                    this.elements.timerLabel.textContent = "Memorisation Time:";
+                    this.elements.digitLabel1.textContent = "Number of Digits:";
+                } else {
+                    this.elements.timerLabel.textContent = "Timer Duration:";
+                    this.elements.digitLabel1.textContent = "Digits (First Number / Percent):";
+                }
+            }
             
             updateGameModeUI() {
-                this.elements.difficultySettingsContainer.classList.add('disabled-section');
-                this.elements.operationsSettingsContainer.classList.add('disabled-section');
+                this.updateSettingsLabels();
                 this.elements.operationBtns.forEach(b => b.classList.remove('active'));
 
+                // Default state: disable everything that might not be used
+                this.elements.difficultySettingsContainer.classList.add('disabled-section');
+                this.elements.digitSlider2Container.classList.add('disabled-section');
+                this.elements.standardOpsContainer.classList.add('disabled-section');
+
+                // Enable sections based on game mode
                 if (this.gameMode === 'standard') {
                     this.elements.difficultySettingsContainer.classList.remove('disabled-section');
-                    this.elements.operationsSettingsContainer.classList.remove('disabled-section');
+                    this.elements.digitSlider2Container.classList.remove('disabled-section');
+                    this.elements.standardOpsContainer.classList.remove('disabled-section');
                     this.enabledOperations.forEach(opName => {
                         const btn = this.elements.operationsSettingsContainer.querySelector(`[data-op=${opName}]`);
                         if(btn) btn.classList.add('active');
                     });
                 } else if (this.gameMode === 'fractions') {
-                    this.elements.operationsSettingsContainer.classList.remove('disabled-section');
                     this.elements.operationsSettingsContainer.querySelector('[data-op="fractions"]').classList.add('active');
                 } else if (this.gameMode === 'guesstimation') {
                     this.elements.difficultySettingsContainer.classList.remove('disabled-section');
-                    this.elements.operationsSettingsContainer.classList.remove('disabled-section');
+                    this.elements.digitSlider2Container.classList.remove('disabled-section');
                     this.elements.operationsSettingsContainer.querySelector('[data-op="guesstimation"]').classList.add('active');
+                } else if (this.gameMode === 'memorise') {
+                    this.elements.difficultySettingsContainer.classList.remove('disabled-section');
+                    this.elements.operationsSettingsContainer.querySelector('[data-op="memorise"]').classList.add('active');
+                    // Second digit slider is not used in this mode, so it remains disabled.
                 }
-                
-                 if (this.gameMode !== 'standard' && this.gameMode !== 'guesstimation') {
-                    this.elements.difficultySettingsContainer.classList.add('disabled-section');
-                 }
-                 if(this.gameMode !== 'standard') {
-                    this.elements.standardOpsContainer.classList.add('disabled-section');
-                 } else {
-                     this.elements.standardOpsContainer.classList.remove('disabled-section');
-                 }
             }
             
             toggleOperation(operation) {
@@ -774,7 +824,9 @@
             }
 
             generateProblem() {
-                 if (this.gameMode === 'fractions') {
+                if (this.gameMode === 'memorise') {
+                    this.startMemorizationPhase();
+                } else if (this.gameMode === 'fractions') {
                     const availableIndices = this.fractionProblems.map((_, index) => index).filter(index => !this.askedFractionIndices.includes(index));
                     if (availableIndices.length === 0) { this.handleFractionsComplete(); return; }
                     const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
@@ -782,6 +834,8 @@
                     const problem = this.fractionProblems[randomIndex];
                     this.currentProblem = { text: `${problem.q} = ?`, answer: problem.a, type: 'fraction' };
                     this.elements.challenge.textContent = this.currentProblem.text;
+                    this.elements.userAnswer.value = '';
+                    setTimeout(() => this.startTimer(), 100);
                 } else if (this.gameMode === 'guesstimation') {
                     const { min: min1, max: max1 } = this.getMinMax(this.digitCount1);
                     const { min: min2, max: max2 } = this.getMinMax(this.digitCount2);
@@ -798,6 +852,8 @@
                     }
                     this.currentProblem = { num1, num2, operation: operationSymbol, answer, type: 'guesstimation' };
                     this.elements.challenge.textContent = `Estimate: ${num1.toLocaleString()} ${operationSymbol} ${num2.toLocaleString()}`;
+                    this.elements.userAnswer.value = '';
+                    setTimeout(() => this.startTimer(), 100);
                 } else { // Standard mode
                     if (this.enabledOperations.length === 0) this.enabledOperations = ['addition'];
                     const operation = this.enabledOperations[Math.floor(Math.random() * this.enabledOperations.length)];
@@ -844,11 +900,64 @@
                     if(!text) text = `${num1.toLocaleString()} ${operationSymbol} ${num2.toLocaleString()}`;
                     this.currentProblem = { num1, num2, operation: operationSymbol, answer, type: operation };
                     this.elements.challenge.textContent = `${text} = ?`;
+                    this.elements.userAnswer.value = '';
+                    setTimeout(() => this.startTimer(), 100);
                 }
-                
-                this.elements.userAnswer.value = '';
-                setTimeout(() => this.startTimer(), 100);
             }
+
+            // --- Memorise Mode Logic ---
+            startMemorizationPhase() {
+                this.gameActive = false;
+                this.elements.userAnswer.value = '';
+                this.elements.userAnswer.disabled = true;
+
+                const digits = this.digitCount1;
+                let numberString = '';
+                for (let i = 0; i < digits; i++) {
+                    numberString += Math.floor(Math.random() * 10);
+                }
+                this.currentProblem = { answer: numberString, type: 'memorise' };
+
+                this.elements.challenge.textContent = numberString.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                this.runPhaseTimer(this.timeLimit, () => this.startWaitingPhase());
+            }
+
+            startWaitingPhase() {
+                this.elements.challenge.textContent = 'Remember...';
+                this.runPhaseTimer(20, () => this.startRecallPhase());
+            }
+
+            startRecallPhase() {
+                this.elements.challenge.textContent = 'What was the number?';
+                this.elements.userAnswer.disabled = false;
+                this.elements.userAnswer.focus();
+                this.startTimer(); // This starts the main answer timer
+            }
+
+            runPhaseTimer(duration, onCompleteCallback) {
+                if (this.phaseTimer) clearInterval(this.phaseTimer);
+                let timeLeft = duration;
+                
+                const update = () => {
+                    this.elements.time.textContent = `${timeLeft}s`;
+                    const percentage = (timeLeft / duration) * 100;
+                    this.elements.progressBar.style.width = `${percentage}%`;
+                    this.updateTimerDisplay(timeLeft, duration); // Update colors
+                };
+
+                update();
+
+                this.phaseTimer = setInterval(() => {
+                    timeLeft--;
+                    update();
+                    if (timeLeft <= 0) {
+                        clearInterval(this.phaseTimer);
+                        this.phaseTimer = null;
+                        onCompleteCallback();
+                    }
+                }, 1000);
+            }
+            // --- End Memorise Mode Logic ---
 
             randomInt(min, max) {
                 min = Math.ceil(min);
@@ -859,20 +968,27 @@
             startTimer() {
                 this.gameActive = true;
                 this.timeLeft = this.timeLimit;
-                this.updateTimerDisplay();
                 if (this.timer) clearInterval(this.timer);
+                
+                const update = () => {
+                    this.updateTimerDisplay(this.timeLeft, this.timeLimit);
+                    this.updateProgressBar();
+                }
+
+                update();
+
                 this.timer = setInterval(() => {
                     this.timeLeft--;
-                    this.updateTimerDisplay();
-                    this.updateProgressBar();
+                    update();
                     if (this.timeLeft <= 0) this.handleTimeout();
                 }, 1000);
             }
 
-            updateTimerDisplay() {
-                this.elements.time.textContent = `${this.timeLeft}s`;
-                 if (this.timeLeft <= 5) this.elements.time.style.color = '#e74c3c';
-                else if (this.timeLeft <= 10) this.elements.time.style.color = '#f39c12';
+            updateTimerDisplay(timeLeft, duration) {
+                this.elements.time.textContent = `${timeLeft}s`;
+                const ratio = timeLeft / duration;
+                if (ratio <= 0.25) this.elements.time.style.color = '#e74c3c';
+                else if (ratio <= 0.5) this.elements.time.style.color = '#f39c12';
                 else this.elements.time.style.color = '#3498db';
             }
 
@@ -890,8 +1006,8 @@
                     value = value.substring(0, value.lastIndexOf('.'));
                 }
                 e.target.value = value;
-
-                if (this.currentProblem && this.gameMode !== 'guesstimation') {
+                
+                if (this.currentProblem && this.gameMode !== 'guesstimation' && this.gameMode !== 'memorise') {
                     const parsedValue = parseFloat(value);
                     if (!isNaN(parsedValue)) {
                         if (Math.abs(parsedValue - this.currentProblem.answer) < 0.0001) {
@@ -905,26 +1021,26 @@
                 if (!this.gameActive) return;
                 const userAnswerValue = this.elements.userAnswer.value.trim();
                 if (userAnswerValue === '') {
-                    if (this.gameMode === 'guesstimation') { // Don't penalize empty on guesstimation, let timeout handle it
-                         this.handleIncorrectAnswer();
-                         return;
-                    }
+                    this.handleIncorrectAnswer();
+                    return;
                 }
 
                 this.gameActive = false;
                 clearInterval(this.timer);
-                const userAnswer = parseFloat(userAnswerValue);
-                if(isNaN(userAnswer)) { this.handleIncorrectAnswer(); return; }
-
+                
                 let isCorrect = false;
-                if (this.currentProblem.type === 'fraction') {
-                    isCorrect = userAnswerValue === this.currentProblem.answer;
+                if (this.currentProblem.type === 'memorise' || this.currentProblem.type === 'fraction') {
+                    isCorrect = userAnswerValue === this.currentProblem.answer.toString();
                 } else if (this.currentProblem.type === 'guesstimation') {
+                    const userAnswer = parseFloat(userAnswerValue);
+                    if (isNaN(userAnswer)) { this.handleIncorrectAnswer(); return; }
                     const actual = this.currentProblem.answer;
                     const lowerBound = actual * (1 - this.guesstimationTolerance);
                     const upperBound = actual * (1 + this.guesstimationTolerance);
                     isCorrect = userAnswer >= lowerBound && userAnswer <= upperBound;
-                } else { // Standard modes, including percentage
+                } else { // Standard modes
+                    const userAnswer = parseFloat(userAnswerValue);
+                    if (isNaN(userAnswer)) { this.handleIncorrectAnswer(); return; }
                     isCorrect = Math.abs(userAnswer - this.currentProblem.answer) < 0.0001;
                 }
 
@@ -962,7 +1078,6 @@
             handleTimeout() {
                 clearInterval(this.timer);
                 if (this.gameActive) {
-                    // If guesstimation has a value, check it. Otherwise, time out.
                     if (this.gameMode === 'guesstimation' && this.elements.userAnswer.value.trim() !== '') {
                         this.checkAnswer();
                     } else {
@@ -1002,13 +1117,14 @@
             gameOver() {
                 if (this.isGameOver) return;
                 this.isGameOver = true;
-
+                
                 let difficultyDesc;
                 if (this.gameMode === 'fractions') difficultyDesc = 'Fractions Mode';
                 else if (this.gameMode === 'guesstimation') difficultyDesc = `Guesstimation (${this.digitCount1} by ${this.digitCount2} digits)`;
+                else if (this.gameMode === 'memorise') difficultyDesc = `Memorise Mode (${this.digitCount1} digits)`;
                 else difficultyDesc = `${this.digitCount1} by ${this.digitCount2} digits, ${this.enabledOperations.join(', ')}`;
                 
-                const finalQuestion = this.elements.challenge.textContent.replace(' = ?','').replace('Estimate: ','');
+                const finalQuestion = (this.gameMode === 'memorise') ? `(Number to memorise)` : this.elements.challenge.textContent.replace(' = ?','').replace('Estimate: ','');
                 const finalAnswer = this.currentProblem.answer.toLocaleString();
 
                 let message = `
@@ -1020,7 +1136,7 @@
 
                 if (this.score > this.highScore) {
                     this.highScore = this.score;
-                    localStorage.setItem('mathNinjaHighScore', this.highScore.toString());
+                    localStorage.setItem('mathemagicsHighScore', this.highScore.toString());
                     message = `
                         <div style="font-size: 1.5em; margin-bottom: 10px;">🎉 NEW HIGH SCORE! 🎉</div>
                         <div>Score: ${this.score} | Level Reached: ${this.level}</div>
@@ -1050,11 +1166,14 @@
                 if (this.isRestarting) return;
                 this.isRestarting = true;
                 
+                if (this.timer) { clearInterval(this.timer); this.timer = null; }
+                if (this.phaseTimer) { clearInterval(this.phaseTimer); this.phaseTimer = null; }
+
                 this.score = 0; this.level = 1; this.streak = 0; this.streakTarget = 5;
                 this.gameActive = false; this.askedFractionIndices = [];
-                if (this.timer) { clearInterval(this.timer); this.timer = null; }
                 
                 this.elements.userAnswer.value = ''; this.elements.feedback.textContent = '';
+                this.elements.userAnswer.disabled = false;
                 this.elements.challenge.classList.remove('pulse', 'shake');
                 this.elements.progressBar.style.width = '100%';
                 this.elements.progressBar.style.background = 'linear-gradient(90deg, #3498db, #2980b9)';
@@ -1101,11 +1220,11 @@
                     this.enabledOperations = ['addition'];
                 }
                 
-                localStorage.setItem('mathNinjaGameMode', this.gameMode);
-                localStorage.setItem('mathNinjaTimeLimit', this.timeLimit.toString());
-                localStorage.setItem('mathNinjaDigitCount1', this.digitCount1.toString());
-                localStorage.setItem('mathNinjaDigitCount2', this.digitCount2.toString());
-                localStorage.setItem('mathNinjaOperations', JSON.stringify(this.enabledOperations));
+                localStorage.setItem('mathemagicsGameMode', this.gameMode);
+                localStorage.setItem('mathemagicsTimeLimit', this.timeLimit.toString());
+                localStorage.setItem('mathemagicsDigitCount1', this.digitCount1.toString());
+                localStorage.setItem('mathemagicsDigitCount2', this.digitCount2.toString());
+                localStorage.setItem('mathemagicsOperations', JSON.stringify(this.enabledOperations));
                 
                 this.hideSettings();
                 this.restartGame();
@@ -1113,7 +1232,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            new MathNinjaAdvanced();
+            new Mathemagics();
         });
     </script>
 </body>
