@@ -126,7 +126,7 @@
             padding: 10px;
         }
 
-        .glossary-item {
+        .glossary-item, .definition-item {
             padding: 12px;
             border-bottom: 1px solid #f1f5f9;
             transition: background-color 0.2s ease;
@@ -136,7 +136,7 @@
             background-color: #f8fafc;
         }
 
-        .glossary-item:last-child {
+        .glossary-item:last-child, .definition-item:last-child {
             border-bottom: none;
         }
 
@@ -170,58 +170,10 @@
             max-height: 300px;
             overflow-y: auto;
         }
-
-        .tooltip {
-            position: relative;
-            display: inline;
-        }
-
-        .highlighted-acronym {
-            background-color: #fef2e7;
+        
+        .translated-email .highlighted-acronym {
             color: #c05621;
-            padding: 2px 4px;
-            border-radius: 4px;
             font-weight: bold;
-            cursor: help;
-            border-bottom: 2px dotted #c05621;
-        }
-
-        .tooltip-content {
-            visibility: hidden;
-            opacity: 0;
-            position: absolute;
-            bottom: calc(100% + 2px);
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #2d3748;
-            color: white;
-            text-align: center;
-            padding: 8px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            white-space: normal;
-            z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            transition: all 0.2s ease;
-            max-width: 250px;
-            line-height: 1.3;
-            pointer-events: none;
-        }
-
-        .tooltip-content::after {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -4px;
-            border-width: 4px;
-            border-style: solid;
-            border-color: #2d3748 transparent transparent transparent;
-        }
-
-        .tooltip:hover .tooltip-content {
-            visibility: visible;
-            opacity: 1;
         }
 
         .icon {
@@ -303,6 +255,11 @@
                     <div class="translated-email" id="translatedEmail" style="display: none;"></div>
                 </div>
             </div>
+
+            <div class="card" id="definitionsCard" style="display: none;">
+                <h2><span class="icon">➤</span> Defined Acronyms</h2>
+                <div id="definitionsList"></div>
+            </div>
         </div>
 
         <div class="stats">
@@ -325,7 +282,6 @@
     </div>
 
     <script>
-        // Comprehensive glossary data
         const glossaryData = [
             {"acronym": "42nd day", "definition": "The cut-off date when students must be withdrawn to not count in retention figures", "description": "Note this is 42 days after they start (including late/January starts)"},
             {"acronym": "AAB", "definition": "Authorised Assignment Brief", "description": "Some awarding organisations have pre-written assignment briefs"},
@@ -446,12 +402,10 @@
 
         let emailTranslationCount = 0;
 
-        // Initialize the application
         function init() {
             displayGlossary(glossaryData);
             updateStats();
             
-            // Add search functionality
             document.getElementById('searchBox').addEventListener('input', function(e) {
                 const searchTerm = e.target.value.toLowerCase();
                 const filteredData = glossaryData.filter(item => 
@@ -463,7 +417,6 @@
             });
         }
 
-        // Display glossary items
         function displayGlossary(data) {
             const glossaryList = document.getElementById('glossaryList');
             
@@ -472,7 +425,6 @@
                 return;
             }
             
-            // Sort data alphabetically by acronym before displaying
             const sortedData = [...data].sort((a, b) => a.acronym.localeCompare(b.acronym));
 
             glossaryList.innerHTML = sortedData.map(item => `
@@ -484,10 +436,12 @@
             `).join('');
         }
 
-        // Translate email function
+        // --- REWRITTEN translateEmail FUNCTION ---
         function translateEmail() {
             const emailText = document.getElementById('emailInput').value;
             const translatedEmailDiv = document.getElementById('translatedEmail');
+            const definitionsCard = document.getElementById('definitionsCard');
+            const definitionsListDiv = document.getElementById('definitionsList');
             
             if (!emailText.trim()) {
                 alert('Please paste an email to translate!');
@@ -495,71 +449,66 @@
             }
 
             let translatedText = emailText;
-            let foundAcronyms = 0;
-            const foundAcronymsList = [];
+            const foundAcronyms = new Map();
 
-            // Sort by length (longest first) to avoid partial replacements
             const sortedGlossary = [...glossaryData].sort((a, b) => b.acronym.length - a.acronym.length);
 
             sortedGlossary.forEach(item => {
-                // Create regex to match whole words only, respecting the original prompt's request for case-sensitivity on most acronyms
-                // A simple rule: if the acronym is all uppercase and > 1 letter, make it case-sensitive. Otherwise, case-insensitive.
                 let flags = 'g';
                 if (!/^[A-Z]{2,}$/.test(item.acronym)) {
                     flags += 'i';
                 }
-
                 const regex = new RegExp(`\\b${item.acronym.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, flags);
                 
                 if (regex.test(translatedText)) {
-                    
-                    // This check prevents the same part of the string from being replaced multiple times by different tooltips
-                    if (translatedText.match(regex).some(match => !match.includes('tooltip'))) {
-                        foundAcronyms++;
-                        foundAcronymsList.push(item.acronym);
-                        
-                        translatedText = translatedText.replace(regex, (match) => {
-                             // Avoid re-wrapping an already wrapped acronym
-                            if (match.includes('tooltip')) {
-                                return match;
-                            }
-                            return `<span class="tooltip">
-                                <span class="highlighted-acronym">${match}</span>
-                                <span class="tooltip-content">
-                                    <strong>${item.definition}</strong><br>
-                                    ${item.description}
-                                </span>
-                            </span>`;
-                        });
+                    if (!foundAcronyms.has(item.acronym.toUpperCase())) {
+                        foundAcronyms.set(item.acronym.toUpperCase(), item);
                     }
+                    translatedText = translatedText.replace(regex, (match) => {
+                        return `<span class="highlighted-acronym">${match}</span>`;
+                    });
                 }
             });
 
-            // Update translated email display
+            // Display translated email
             translatedEmailDiv.style.display = 'block';
             translatedEmailDiv.innerHTML = translatedText;
+
+            // Display definitions card
+            if (foundAcronyms.size > 0) {
+                definitionsCard.style.display = 'block';
+                definitionsListDiv.innerHTML = ''; // Clear previous results
+                
+                // Sort found acronyms alphabetically before displaying
+                const sortedFound = new Map([...foundAcronyms.entries()].sort());
+
+                sortedFound.forEach(item => {
+                    definitionsListDiv.innerHTML += `
+                        <div class="definition-item">
+                            <div class="acronym">${item.acronym}</div>
+                            <div class="definition">${item.definition}</div>
+                            <div class="description">${item.description}</div>
+                        </div>
+                    `;
+                });
+            } else {
+                definitionsCard.style.display = 'none';
+                translatedEmailDiv.innerHTML += '<br><br><em style="color: #718096;">No acronyms from the glossary found in this email.</em>';
+            }
 
             // Update statistics
             emailTranslationCount++;
             document.getElementById('emailsTranslated').textContent = emailTranslationCount;
-            document.getElementById('acronymsFound').textContent = foundAcronyms;
-
-            // Show success message
-            if (foundAcronyms > 0) {
-                console.log(`Found and translated ${foundAcronyms} acronyms: ${foundAcronymsList.join(', ')}`);
-            } else {
-                translatedEmailDiv.innerHTML = emailText + '<br><br><em style="color: #718096;">No acronyms from the glossary found in this email.</em>';
-            }
+            document.getElementById('acronymsFound').textContent = foundAcronyms.size;
         }
 
-        // Update statistics
+
         function updateStats() {
             document.getElementById('totalAcronyms').textContent = glossaryData.length;
             document.getElementById('emailsTranslated').textContent = emailTranslationCount;
             document.getElementById('acronymsFound').textContent = '0';
         }
 
-        // Initialize when page loads
         document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
