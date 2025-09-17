@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Educational Acronym Translator & Glossary</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .card h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .email-input {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .email-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .translate-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .translate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .glossary-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px;
+        }
+
+        .glossary-item {
+            padding: 12px;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background-color 0.2s ease;
+        }
+
+        .glossary-item:hover {
+            background-color: #f8fafc;
+        }
+
+        .glossary-item:last-child {
+            border-bottom: none;
+        }
+
+        .acronym {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .definition {
+            color: #4a5568;
+            margin: 5px 0;
+            font-weight: 600;
+        }
+
+        .description {
+            color: #718096;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .translated-email {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline;
+        }
+
+        .highlighted-acronym {
+            background-color: #fef2e7;
+            color: #c05621;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: help;
+            border-bottom: 2px dotted #c05621;
+        }
+
+        .tooltip-content {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            /* ADJUSTMENT MADE HERE */
+            bottom: calc(100% + 2px); /* Was 5px, reduced to 2px to close the gap */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #2d3748;
+            color: white;
+            text-align: center;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            white-space: normal;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+            max-width: 250px;
+            line-height: 1.3;
+            pointer-events: none;
+        }
+
+        .tooltip-content::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -4px;
+            border-width: 4px;
+            border-style: solid;
+            border-color: #2d3748 transparent transparent transparent;
+        }
+
+        .tooltip:hover .tooltip-content {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .icon {
+            font-size: 1.2rem;
+        }
+
+        .stats {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            padding: 15px;
+            background: linear-gradient(45deg, #f8fafc, #e2e8f0);
+            border-radius: 12px;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #4a5568;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+        }
+
+        .no-results {
+            text-align: center;
+            color: #718096;
+            font-style: italic;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>答 Educational Acronym Translator</h1>
+            <p>Decode institutional jargon and translate your emails instantly</p>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2><span class="icon">剥</span> Glossary Search</h2>
+                <input type="text" class="search-box" id="searchBox" placeholder="Search acronyms or definitions...">
+                <div class="glossary-list" id="glossaryList"></div>
+            </div>
+
+            <div class="card">
+                <h2><span class="icon">透</span> Email Translator</h2>
+                <textarea class="email-input" id="emailInput" placeholder="Paste your email here and click translate to decode acronyms..."></textarea>
+                <button class="translate-btn" onclick="translateEmail()">Translate Email</button>
+                <div style="margin-top: 15px;">
+                    <div class="translated-email" id="translatedEmail" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <h2>投 Glossary Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number" id="totalAcronyms">0</div>
+                    <div class="stat-label">Total Acronyms</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="emailsTranslated">0</div>
+                    <div class="stat-label">Emails Translated</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="acronymsFound">0</div>
+                    <div class="stat-label">Last Translation Found</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Comprehensive glossary data
+        const glossaryData = [
+            {"acronym": "42nd day", "definition": "The cut-off date when students must be withdrawn to not count in retention figures", "description": "Note this is 42 days after they start (including late/January starts)"},
+            {"acronym": "AAB", "definition": "Authorised Assignment Brief", "description": "Some awarding organisations have pre-written assignment briefs"},
+            {"acronym": "AB", "definition": "Assignment Brief", "description": "The assessment material to assess the students knowledge and skills"},
+            {"acronym": "Achievement Boards", "definition": "Principalship meetings with HoD's to check achievement on programmes", "description": "Usually held towards the end of the academic year"},
+            {"acronym": "ALS", "definition": "Additional Learning Support", "description": "The team or the process of getting learners support for their learning needs"},
+            {"acronym": "AO", "definition": "Awarding Bodies", "description": "The body/board that writes the specification and certificates students"},
+            {"acronym": "EB", "definition": "Exam Boards", "description": "The body/board that writes the specification and certificates students"},
+            {"acronym": "AP", "definition": "Assistant Principal", "description": "There is an assistant principal in each curriculum area"},
+            {"acronym": "APM", "definition": "Attendance and Progress Monitors", "description": "Those that chase students attendance and punctuality"},
+            {"acronym": "A.plan", "definition": "Assessment Plan", "description": "A plan showing when assessment is taking place on a course"},
+            {"acronym": "Assessment Plan", "definition": "Assessment Plan", "description": "A plan showing when assessment is taking place on a course"},
+            {"acronym": "Appraisals", "definition": "A meeting in which an employee discusses their progress, aims, and needs at work with their manager", "description": "Held 3 times a year (approx.)"},
+            {"acronym": "ATG", "definition": "Aspirational Target Grade", "description": "The target grade a student should be trying to achieve"},
+            {"acronym": "AT", "definition": "Achievement Tutor", "description": "Staff member responsible for student achievement and support"},
+            {"acronym": "AM1", "definition": "Attendance Monitoring 1", "description": "First level attendance intervention issued by ATs and APMs"},
+            {"acronym": "D1", "definition": "Disciplinary Level 1", "description": "Minor disciplinary action that can be issued by all staff"},
+            {"acronym": "Café Conversations", "definition": "A member of management will be in the café area to meet face to face with any staff", "description": "For questions, suggestions or just want to talk"},
+            {"acronym": "CF", "definition": "Course file for TLA", "description": "A paper or digital file made up of everything needed to run a course"},
+            {"acronym": "CF01", "definition": "EBS report", "description": "An EBS report to show all courses a curriculum area is providing"},
+            {"acronym": "Class profile", "definition": "A list made from EBS with all class details on", "description": "Tutors then add specific comments about individuals for inform teaching, learning and assessment"},
+            {"acronym": "CL09", "definition": "Class profile template", "description": "The template found in EBS reports"},
+            {"acronym": "CM", "definition": "Curriculum meeting", "description": "A meeting with all staff teaching on a particular subject or level"},
+            {"acronym": "Cur Meet", "definition": "Curriculum meeting", "description": "A meeting with all staff teaching on a particular subject or level"},
+            {"acronym": "CoP", "definition": "Communities of Practice", "description": "Getting together with peers to share good practice"},
+            {"acronym": "Course Handbook", "definition": "Every student should have a course handbook", "description": "Template provided by HoDQ to cover all aspects of the students course"},
+            {"acronym": "Course Review", "definition": "A presentation by teachers to review how the course went the previous year", "description": "Delivered to the HoDQ and AP"},
+            {"acronym": "CPD", "definition": "Continuous Professional Development", "description": "Training and development you do"},
+            {"acronym": "Data Cleanse", "definition": "Making sure all classes/cohorts are correct", "description": "Removing withdrawn students etc"},
+            {"acronym": "Deep Dive", "definition": "A detailed thorough check into a students full profile", "description": "From induction, attendance, targets to current status"},
+            {"acronym": "DTL", "definition": "Departmental Team Leader", "description": "Team leader within a department"},
+            {"acronym": "DTM", "definition": "Departmental Team Meeting", "description": "Held by a DTL or HoD to provide updates or discuss important issues"},
+            {"acronym": "E&D", "definition": "Equality and Diversity", "description": "Equality and diversity principles"},
+            {"acronym": "EDI", "definition": "Equality, diversity and inclusivity", "description": "Equality, diversity and inclusivity principles"},
+            {"acronym": "EBS", "definition": "Education Business System", "description": "The system used to do registers, check learners enrolments and PMP's"},
+            {"acronym": "EBS On-Track", "definition": "Education Business System", "description": "Same as EBS"},
+            {"acronym": "EBS Reports", "definition": "System to pull reports on various aspects of students", "description": "Mainly used to obtain class lists (CL09)"},
+            {"acronym": "EIF", "definition": "Education Inspection Framework", "description": "Ofsted's guide to inspections"},
+            {"acronym": "EHC", "definition": "Educational health care", "description": "Educational health care support"},
+            {"acronym": "EHCP", "definition": "Educational health care plan", "description": "Plan for educational health care support"},
+            {"acronym": "EoL", "definition": "Edexcel Online", "description": "The system Pearson use for registrations and claims"},
+            {"acronym": "ETLA", "definition": "Evaluation of Teaching Learning and Assessment", "description": "The system used to review TLA"},
+            {"acronym": "ELP", "definition": "Evaluation of Learning Progress", "description": "The system used to review TLA"},
+            {"acronym": "EQA", "definition": "External Quality Assurance or External Quality Assurer", "description": "The person from the awarding body to regulate the qualification"},
+            {"acronym": "EV", "definition": "External Verifier", "description": "Person from awarding body to check processes and student work"},
+            {"acronym": "EM", "definition": "External Moderator", "description": "Person from awarding body to check processes and student work"},
+            {"acronym": "FE", "definition": "Further Education", "description": "Further education sector"},
+            {"acronym": "HE", "definition": "Higher Education", "description": "Higher education sector"},
+            {"acronym": "HE Progression Event", "definition": "Events where students can get involved to find out more about HE provision at UCEN", "description": "Higher education progression events"},
+            {"acronym": "HN", "definition": "High needs learner", "description": "Student with high support needs"},
+            {"acronym": "HNL", "definition": "High needs learner", "description": "Student with high support needs"},
+            {"acronym": "HoD C", "definition": "Head of Department Curriculum", "description": "Curriculum head of department"},
+            {"acronym": "HoD Q", "definition": "Head of Department Quality", "description": "Quality head of department"},
+            {"acronym": "HoDQ", "definition": "Head of Department Quality", "description": "Quality head of department"},
+            {"acronym": "Industry Boards", "definition": "Industry advisory boards", "description": "Boards with industry representatives"},
+            {"acronym": "IQA", "definition": "Internal Quality Assurance / Internal Quality Assurer", "description": "Internal quality assurance processes"},
+            {"acronym": "IQA Review Board", "definition": "A review from the quality team to ensure the programme has IQA processes in place", "description": "Quality assurance review"},
+            {"acronym": "IQR", "definition": "Internal Quality Review", "description": "A supportive inspection from the quality team"},
+            {"acronym": "IV", "definition": "Internal Verification or Internal Verifier", "description": "Internal verification processes"},
+            {"acronym": "Learning Walks", "definition": "A manager or member of quality may walk into your class", "description": "To check on a theme or to gather general TLA information"},
+            {"acronym": "LIV", "definition": "Lead Internal Verifier", "description": "BTEC courses have a LIV who standardises the team"},
+            {"acronym": "LIV meetings", "definition": "Meetings held termly to discuss IV issues, practices and processes", "description": "Lead internal verifier meetings"},
+            {"acronym": "Long Course Application Deadline", "definition": "CPD courses you wish to do must be applied for by this date", "description": "Deadline for course applications"},
+            {"acronym": "LTE Group", "definition": "Learning, Training and Employment", "description": "The parent organization"},
+            {"acronym": "Markbook", "definition": "A part of Promonitor that confirms assessment", "description": "Assessment tracking system"},
+            {"acronym": "MIS", "definition": "Management information systems", "description": "Systems that manage information on students"},
+            {"acronym": "IS", "definition": "Information systems", "description": "Systems that manage information on students"},
+            {"acronym": "MS", "definition": "Mark Scheme or Microsoft", "description": "Mark scheme for assessments or Microsoft software"},
+            {"acronym": "MTG", "definition": "Minimum Target Grade", "description": "The minimum students should get as part of their study programme"},
+            {"acronym": "MTM", "definition": "Management Team Meeting", "description": "Meeting of the management team"},
+            {"acronym": "NWOW", "definition": "Normal Way of Working", "description": "Form to help gain additional support or extra time in assessment"},
+            {"acronym": "NWoW", "definition": "Normal Way of Working", "description": "Form to help gain additional support or extra time in assessment"},
+            {"acronym": "Open Event", "definition": "Open days, open evenings when perspective students come to visit", "description": "Student recruitment events"},
+            {"acronym": "Parents Evening", "definition": "Parents Evening", "description": "Evening for parents to meet with staff"},
+            {"acronym": "Parent reports", "definition": "A report sent home to parents on the students progress", "description": "Progress reports for parents"},
+            {"acronym": "Planning days", "definition": "Planning days", "description": "Days set aside for planning"},
+            {"acronym": "PM", "definition": "Pro-Monitor", "description": "Student monitoring and tracking system"},
+            {"acronym": "Pro-Monitor", "definition": "Pro-Monitor", "description": "Student monitoring and tracking system"},
+            {"acronym": "PMP 1", "definition": "Progress Monitoring Point 1", "description": "First progress monitoring point in the year"},
+            {"acronym": "PMP 2", "definition": "Progress Monitoring Point 2", "description": "Second progress monitoring point in the year"},
+            {"acronym": "PMP 3", "definition": "Progress Monitoring Point 3", "description": "Third progress monitoring point in the year"},
+            {"acronym": "PMP 4", "definition": "Progress Monitoring Point 4", "description": "Fourth progress monitoring point in the year"},
+            {"acronym": "PMR", "definition": "Performance Management Review", "description": "Management meetings to discuss programme performance"},
+            {"acronym": "Power Bi", "definition": "A system that analyses data such as, attendance, retention, enrolments etc", "description": "Data analysis system"},
+            {"acronym": "QBRC", "definition": "Quality Board Review Committee", "description": "Quality review committee"},
+            {"acronym": "QBRR", "definition": "Quality Board Review Report", "description": "Quality review report"},
+            {"acronym": "QIG", "definition": "Quality Improvement Group", "description": "Group that meets to set quality agendas and share practice"},
+            {"acronym": "QIP", "definition": "Quality Improvement Plan", "description": "Plan with targets to achieve to improve programmes"},
+            {"acronym": "Quality Voice", "definition": "Surveys and forums for all staff to contribute to the quality agenda", "description": "Staff feedback system"},
+            {"acronym": "RM", "definition": "Resource Managers", "description": "In department admin support person"},
+            {"acronym": "RoL", "definition": "Review of Learning", "description": "An evaluation tool for TLA"},
+            {"acronym": "SAR", "definition": "Self-Assessment Report", "description": "Department self assessment of programmes"},
+            {"acronym": "SARA", "definition": "Self-Assessment Report and Action", "description": "Self assessment and action planning"},
+            {"acronym": "SAT", "definition": "Senior Achievement Tutors", "description": "Senior staff responsible for student achievement"},
+            {"acronym": "Senior AT", "definition": "Senior Achievement Tutors", "description": "Senior staff responsible for student achievement"},
+            {"acronym": "SEND", "definition": "Special educational needs and disability", "description": "Support for students with special needs"},
+            {"acronym": "SMT", "definition": "Senior Management Team", "description": "Assistant Principles and above"},
+            {"acronym": "SLT", "definition": "Senior Leadership Team", "description": "Assistant Principles and above"},
+            {"acronym": "SoL", "definition": "Scheme of Learning", "description": "Breakdown of lessons to ensure TLA covers all curriculum aspects"},
+            {"acronym": "SOW", "definition": "Scheme of Work", "description": "Former term for Scheme of Learning"},
+            {"acronym": "SPaG", "definition": "Spelling, Punctuation and Grammar", "description": "Assessment criteria"},
+            {"acronym": "SPOCK", "definition": "Spelling, punctuation, omissions, capital letters and knowledge", "description": "Assessment checklist"},
+            {"acronym": "SSG", "definition": "Student Support Group", "description": "Group providing student support"},
+            {"acronym": "SSP", "definition": "Student Support Practitioner", "description": "Staff member providing student support"},
+            {"acronym": "Standardisation", "definition": "Meetings to ensure all tutors and IV's are assessing and verifying the same way", "description": "Often called moderation"},
+            {"acronym": "Support Plan", "definition": "Students have a support plan should they need any help with TLA or personal aspects", "description": "Found on Promonitor"},
+            {"acronym": "Teacher Toolkit", "definition": "Found on the HUB this is a folder of helpful documents and processes for TLA", "description": "Teaching resources"},
+            {"acronym": "TLA", "definition": "Teaching, learning and assessment", "description": "All activities that contribute to classroom, planning and execution"},
+            {"acronym": "TMC", "definition": "The Manchester College", "description": "The institution"},
+            {"acronym": "TRB", "definition": "Teacher Review Board", "description": "Teachers get together to assess student progress as part of 6 week cycle"},
+            {"acronym": "VP", "definition": "Vice Principal", "description": "Senior leadership position"},
+            {"acronym": "Wellbeing/Admin day", "definition": "Wellbeing/Admin day", "description": "Day for wellbeing and administrative tasks"},
+            {"acronym": "WEX", "definition": "Work experience", "description": "Student work experience placements"}
+        ];
+
+        let emailTranslationCount = 0;
+
+        // Initialize the application
+        function init() {
+            displayGlossary(glossaryData);
+            updateStats();
+            
+            // Add search functionality
+            document.getElementById('searchBox').addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const filteredData = glossaryData.filter(item => 
+                    item.acronym.toLowerCase().includes(searchTerm) ||
+                    item.definition.toLowerCase().includes(searchTerm) ||
+                    item.description.toLowerCase().includes(searchTerm)
+                );
+                displayGlossary(filteredData);
+            });
+        }
+
+        // Display glossary items
+        function displayGlossary(data) {
+            const glossaryList = document.getElementById('glossaryList');
+            
+            if (data.length === 0) {
+                glossaryList.innerHTML = '<div class="no-results">No results found. Try a different search term.</div>';
+                return;
+            }
+            
+            glossaryList.innerHTML = data.map(item => `
+                <div class="glossary-item">
+                    <div class="acronym">${item.acronym}</div>
+                    <div class="definition">${item.definition}</div>
+                    <div class="description">${item.description}</div>
+                </div>
+            `).join('');
+        }
+
+        // Translate email function
+        function translateEmail() {
+            const emailText = document.getElementById('emailInput').value;
+            const translatedEmailDiv = document.getElementById('translatedEmail');
+            
+            if (!emailText.trim()) {
+                alert('Please paste an email to translate!');
+                return;
+            }
+
+            let translatedText = emailText;
+            let foundAcronyms = 0;
+            const foundAcronymsList = [];
+
+            // Sort by length (longest first) to avoid partial replacements
+            const sortedGlossary = [...glossaryData].sort((a, b) => b.acronym.length - a.acronym.length);
+
+            sortedGlossary.forEach(item => {
+                // Create regex to match whole words only, respecting the original prompt's request for case-sensitivity on most acronyms
+                // A simple rule: if the acronym is all uppercase and > 1 letter, make it case-sensitive. Otherwise, case-insensitive.
+                let flags = 'g';
+                if (!/^[A-Z]{2,}$/.test(item.acronym)) {
+                    flags += 'i';
+                }
+
+                const regex = new RegExp(`\\b${item.acronym.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, flags);
+                
+                if (regex.test(translatedText)) {
+                    
+                    // This check prevents the same part of the string from being replaced multiple times by different tooltips
+                    if (translatedText.match(regex).some(match => !match.includes('tooltip'))) {
+                        foundAcronyms++;
+                        foundAcronymsList.push(item.acronym);
+                        
+                        translatedText = translatedText.replace(regex, (match) => {
+                             // Avoid re-wrapping an already wrapped acronym
+                            if (match.includes('tooltip')) {
+                                return match;
+                            }
+                            return `<span class="tooltip">
+                                <span class="highlighted-acronym">${match}</span>
+                                <span class="tooltip-content">
+                                    <strong>${item.definition}</strong><br>
+                                    ${item.description}
+                                </span>
+                            </span>`;
+                        });
+                    }
+                }
+            });
+
+            // Update translated email display
+            translatedEmailDiv.style.display = 'block';
+            translatedEmailDiv.innerHTML = translatedText;
+
+            // Update statistics
+            emailTranslationCount++;
+            document.getElementById('emailsTranslated').textContent = emailTranslationCount;
+            document.getElementById('acronymsFound').textContent = foundAcronyms;
+
+            // Show success message
+            if (foundAcronyms > 0) {
+                console.log(`Found and translated ${foundAcronyms} acronyms: ${foundAcronymsList.join(', ')}`);
+            } else {
+                translatedEmailDiv.innerHTML = emailText + '<br><br><em style="color: #718096;">No acronyms from the glossary found in this email.</em>';
+            }
+        }
+
+        // Update statistics
+        function updateStats() {
+            document.getElementById('totalAcronyms').textContent = glossaryData.length;
+            document.getElementById('emailsTranslated').textContent = emailTranslationCount;
+            document.getElementById('acronymsFound').textContent = '0';
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
