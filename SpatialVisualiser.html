@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spatial Relationship Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: flex;
+            gap: 30px;
+            padding: 30px;
+            min-height: 600px;
+        }
+
+        .input-panel {
+            flex: 1;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .relationships-list {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 2px solid #e1e8ed;
+        }
+
+        .relationship-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+
+        .relationship-item.editing {
+            border-left-color: #e67e22;
+            background: #fdf6e3;
+        }
+
+        .relationship-text {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .relationship-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .edit-btn, .delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .edit-btn:hover {
+            background: #e67e22;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e1e8ed;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .add-btn {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .add-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(46, 204, 113, 0.3);
+        }
+
+        .visualize-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .visualize-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .visualization-panel {
+            flex: 2;
+            position: relative;
+        }
+
+        .map-container {
+            background: #ecf0f1;
+            border-radius: 15px;
+            height: 500px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+            border: 3px solid #bdc3c7;
+        }
+
+        .grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.3;
+            background-image:
+                linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        .building {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: move;
+            transition: all 0.3s ease;
+            z-index: 10;
+            touch-action: none;
+        }
+
+        .building:hover {
+            transform: scale(1.1);
+            z-index: 20;
+        }
+
+        .building-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .building-label {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            white-space: nowrap;
+            border: 2px solid #3498db;
+        }
+
+        .distance-line {
+            position: absolute;
+            background: #e74c3c;
+            height: 3px;
+            transform-origin: left center;
+            z-index: 5;
+            opacity: 0.8;
+        }
+
+        .distance-label {
+            position: absolute;
+            background: #e74c3c;
+            color: white;
+            padding: 3px 6px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            z-index: 6;
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .preset-btn {
+            background: linear-gradient(135deg, #8e44ad, #9b59b6);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .preset-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(142, 68, 173, 0.3);
+        }
+
+        .clear-btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .clear-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(231, 76, 60, 0.3);
+        }
+
+        .compass {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 20;
+        }
+
+        .compass::before {
+            content: '↑N';
+            position: absolute;
+            top: 6px;
+            color: #e74c3c;
+        }
+
+        .compass::after {
+            content: '↓S';
+            position: absolute;
+            bottom: 6px;
+            color: #3498db;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #7f8c8d;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .mode-indicator {
+            background: #e8f5e8;
+            border: 2px solid #27ae60;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: #27ae60;
+        }
+
+        .mode-indicator.editing {
+            background: #fdf6e3;
+            border-color: #e67e22;
+            color: #e67e22;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 20px 15px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .main-content {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px;
+            }
+            
+            .input-panel {
+                padding: 20px;
+            }
+            
+            .map-container {
+                height: 400px;
+                margin-bottom: 20px;
+            }
+            
+            .building:hover {
+                transform: scale(1.05);
+            }
+            
+            .building-icon {
+                font-size: 35px;
+            }
+            
+            .compass {
+                width: 60px;
+                height: 60px;
+                font-size: 10px;
+                top: 10px;
+                right: 10px;
+            }
+            
+            .preset-buttons {
+                flex-direction: column;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .map-container {
+                height: 350px;
+            }
+            
+            .building-icon {
+                font-size: 30px;
+            }
+            
+            select, input {
+                font-size: 16px;
+                padding: 12px;
+            }
+            
+            .compass {
+                width: 50px;
+                height: 50px;
+                font-size: 9px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗺️ Spatial Visualizer</h1>
+            <p>Set up relationships, then visualize spatial positions</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="input-panel">
+                <div class="mode-indicator" id="modeIndicator">✨ Adding Mode</div>
+                
+                <h3 style="margin-bottom: 15px; color: #2c3e50; font-size: 16px;">Relationships</h3>
+                
+                <div class="relationships-list" id="relationshipsList">
+                    <div style="text-align: center; color: #7f8c8d; font-style: italic; padding: 20px;">
+                        No relationships added yet
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>Building A:</label>
+                    <select id="buildingA">
+                        <option value="🏢">🏢 Office</option>
+                        <option value="🍽️">🍽️ Restaurant</option>
+                        <option value="🏪">🏪 Shop</option>
+                        <option value="🏥">🏥 Hospital</option>
+                        <option value="🏫">🏫 School</option>
+                        <option value="📫">📫 Post Office</option>
+                        <option value="🏛️">🏛️ Bank</option>
+                        <option value="🏨">🏨 Hotel</option>
+                        <option value="⛽">⛽ Gas Station</option>
+                        <option value="🏬">🏬 Market</option>
+                        <option value="📚">📚 Library</option>
+                        <option value="🎭">🎭 Theater</option>
+                        <option value="🏋️">🏋️ Gym</option>
+                        <option value="☕">☕ Cafe</option>
+                        <option value="🏰">🏰 Museum</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label>Distance (meters):</label>
+                    <input type="number" id="distance" placeholder="e.g., 500" min="0" max="2000">
+                </div>
+                
+                <div class="input-group">
+                    <label>Direction:</label>
+                    <select id="direction">
+                        <option value="north">North</option>
+                        <option value="south">South</option>
+                        <option value="east">East</option>
+                        <option value="west">West</option>
+                        <option value="northeast">Northeast</option>
+                        <option value="northwest">Northwest</option>
+                        <option value="southeast">Southeast</option>
+                        <option value="southwest">Southwest</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>of Building B:</label>
+                    <select id="buildingB">
+                        <option value="🏢">🏢 Office</option>
+                        <option value="🍽️">🍽️ Restaurant</option>
+                        <option value="🏪">🏪 Shop</option>
+                        <option value="🏥">🏥 Hospital</option>
+                        <option value="🏫">🏫 School</option>
+                        <option value="📫">📫 Post Office</option>
+                        <option value="🏛️">🏛️ Bank</option>
+                        <option value="🏨">🏨 Hotel</option>
+                        <option value="⛽">⛽ Gas Station</option>
+                        <option value="🏬">🏬 Market</option>
+                        <option value="📚">📚 Library</option>
+                        <option value="🎭">🎭 Theater</option>
+                        <option value="🏋️">🏋️ Gym</option>
+                        <option value="☕">☕ Cafe</option>
+                        <option value="🏰">🏰 Museum</option>
+                    </select>
+                </div>
+                
+                <button class="add-btn" onclick="addRelationship()" id="addBtn">Add Relationship</button>
+                
+                <button class="visualize-btn" onclick="visualizeRelationships()">🎯 Visualize Positions</button>
+                
+                <div class="preset-buttons">
+                    <button class="preset-btn" onclick="loadExample1()">Quiz 1</button>
+                    <button class="preset-btn" onclick="loadExample2()">Quiz 2</button>
+                    <button class="preset-btn" onclick="loadExample3()">Chain</button>
+                </div>
+                
+                <button class="clear-btn" onclick="clearAll()">Clear All</button>
+            </div>
+            
+            <div class="visualization-panel">
+                <div class="map-container" id="mapContainer">
+                    <div class="grid"></div>
+                    <div class="compass"></div>
+                    <div class="empty-state" id="emptyState">
+                        <div class="empty-state-icon">🗺️</div>
+                        <h3>Add relationships and click "Visualize Positions"</h3>
+                        <p>Set up how buildings relate to each other, then see them positioned on the map</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let relationships = [];
+        let buildings = [];
+        let editingIndex = -1;
+
+        function addRelationship() {
+            const buildingA = document.getElementById('buildingA').value;
+            const distance = parseInt(document.getElementById('distance').value);
+            const direction = document.getElementById('direction').value;
+            const buildingB = document.getElementById('buildingB').value;
+            
+            if (!distance) {
+                alert('Please enter a distance');
+                return;
+            }
+
+            if (buildingA === buildingB) {
+                alert('Building A and Building B must be different');
+                return;
+            }
+            
+            const relationship = {
+                buildingA,
+                distance,
+                direction,
+                buildingB,
+                id: Date.now()
+            };
+            
+            if (editingIndex >= 0) {
+                relationships[editingIndex] = relationship;
+                editingIndex = -1;
+                document.getElementById('addBtn').textContent = 'Add Relationship';
+                document.getElementById('modeIndicator').textContent = '✨ Adding Mode';
+                document.getElementById('modeIndicator').className = 'mode-indicator';
+            } else {
+                relationships.push(relationship);
+            }
+            
+            updateRelationshipsList();
+            
+            // Clear form
+            document.getElementById('distance').value = '';
+        }
+
+        function updateRelationshipsList() {
+            const container = document.getElementById('relationshipsList');
+            
+            if (relationships.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #7f8c8d; font-style: italic; padding: 20px;">No relationships added yet</div>';
+                return;
+            }
+            
+            container.innerHTML = relationships.map((rel, index) => `
+                <div class="relationship-item ${index === editingIndex ? 'editing' : ''}">
+                    <div class="relationship-text">
+                        ${rel.buildingA} is <strong>${rel.distance}m ${rel.direction}</strong> of ${rel.buildingB}
+                    </div>
+                    <div class="relationship-buttons">
+                        <button class="edit-btn" onclick="editRelationship(${index})" title="Edit">✏️</button>
+                        <button class="delete-btn" onclick="deleteRelationship(${index})" title="Delete">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function editRelationship(index) {
+            const rel = relationships[index];
+            
+            document.getElementById('buildingA').value = rel.buildingA;
+            document.getElementById('distance').value = rel.distance;
+            document.getElementById('direction').value = rel.direction;
+            document.getElementById('buildingB').value = rel.buildingB;
+            
+            editingIndex = index;
+            document.getElementById('addBtn').textContent = 'Update Relationship';
+            document.getElementById('modeIndicator').textContent = '✏️ Editing Mode';
+            document.getElementById('modeIndicator').className = 'mode-indicator editing';
+            
+            updateRelationshipsList();
+        }
+
+        function deleteRelationship(index) {
+            relationships.splice(index, 1);
+            if (editingIndex === index) {
+                editingIndex = -1;
+                document.getElementById('addBtn').textContent = 'Add Relationship';
+                document.getElementById('modeIndicator').textContent = '✨ Adding Mode';
+                document.getElementById('modeIndicator').className = 'mode-indicator';
+                
+                // Clear form
+                document.getElementById('distance').value = '';
+            }
+            updateRelationshipsList();
+        }
+
+        function visualizeRelationships() {
+            if (relationships.length === 0) {
+                alert('Please add some relationships first');
+                return;
+            }
+
+            // Extract unique buildings
+            const buildingSet = new Set();
+            relationships.forEach(rel => {
+                buildingSet.add(rel.buildingA);
+                buildingSet.add(rel.buildingB);
+            });
+
+            // Create buildings array with positions
+            buildings = [];
+            const buildingTypes = Array.from(buildingSet);
+            
+            // Start with the first building at center
+            const firstBuilding = buildingTypes[0];
+            buildings.push({
+                type: firstBuilding,
+                x: 300,
+                y: 250,
+                id: firstBuilding
+            });
+
+            // Position other buildings based on relationships
+            const positioned = new Set([firstBuilding]);
+            let attempts = 0;
+            const maxAttempts = buildingTypes.length * 10;
+
+            while (positioned.size < buildingTypes.length && attempts < maxAttempts) {
+                attempts++;
+                
+                for (const rel of relationships) {
+                    const { buildingA, buildingB, distance, direction } = rel;
+                    
+                    if (positioned.has(buildingB) && !positioned.has(buildingA)) {
+                        // Position A relative to B
+                        const refBuilding = buildings.find(b => b.type === buildingB);
+                        const newPos = getRelativePosition(distance, direction, refBuilding);
+                        
+                        buildings.push({
+                            type: buildingA,
+                            x: newPos.x,
+                            y: newPos.y,
+                            id: buildingA
+                        });
+                        positioned.add(buildingA);
+                    } else if (positioned.has(buildingA) && !positioned.has(buildingB)) {
+                        // Position B relative to A (opposite direction)
+                        const refBuilding = buildings.find(b => b.type === buildingA);
+                        const oppositeDirection = getOppositeDirection(direction);
+                        const newPos = getRelativePosition(distance, oppositeDirection, refBuilding);
+                        
+                        buildings.push({
+                            type: buildingB,
+                            x: newPos.x,
+                            y: newPos.y,
+                            id: buildingB
+                        });
+                        positioned.add(buildingB);
+                    }
+                }
+            }
+
+            renderBuildings();
+        }
+
+        function getOppositeDirection(direction) {
+            const opposites = {
+                'north': 'south',
+                'south': 'north',
+                'east': 'west',
+                'west': 'east',
+                'northeast': 'southwest',
+                'southwest': 'northeast',
+                'northwest': 'southeast',
+                'southeast': 'northwest'
+            };
+            return opposites[direction] || direction;
+        }
+
+        function getRelativePosition(distance, direction, referenceBuilding) {
+            const scale = 0.12;
+            const scaledDistance = distance * scale;
+            
+            const directionOffsets = {
+                north: { x: 0, y: -scaledDistance },
+                south: { x: 0, y: scaledDistance },
+                east: { x: scaledDistance, y: 0 },
+                west: { x: -scaledDistance, y: 0 },
+                northeast: { x: scaledDistance * 0.7, y: -scaledDistance * 0.7 },
+                northwest: { x: -scaledDistance * 0.7, y: -scaledDistance * 0.7 },
+                southeast: { x: scaledDistance * 0.7, y: scaledDistance * 0.7 },
+                southwest: { x: -scaledDistance * 0.7, y: scaledDistance * 0.7 }
+            };
+            
+            const offset = directionOffsets[direction] || { x: 0, y: 0 };
+            
+            return {
+                x: Math.max(30, Math.min(referenceBuilding.x + offset.x, 570)),
+                y: Math.max(50, Math.min(referenceBuilding.y + offset.y, 450))
+            };
+        }
+
+        function renderBuildings() {
+            const container = document.getElementById('mapContainer');
+            const emptyState = document.getElementById('emptyState');
+            
+            // Hide empty state
+            emptyState.style.display = 'none';
+            
+            // Remove existing elements
+            const existingElements = container.querySelectorAll('.building, .distance-line, .distance-label');
+            existingElements.forEach(el => el.remove());
+            
+            buildings.forEach(building => {
+                const buildingElement = document.createElement('div');
+                buildingElement.className = 'building';
+                buildingElement.style.left = `${building.x - 25}px`;
+                buildingElement.style.top = `${building.y - 40}px`;
+                
+                buildingElement.innerHTML = `
+                    <div class="building-icon">${building.type}</div>
+                    <div class="building-label">${getBuildingName(building.type)}</div>
+                `;
+                
+                container.appendChild(buildingElement);
+            });
+
+            // Draw relationship lines
+            relationships.forEach(rel => {
+                const buildingA = buildings.find(b => b.type === rel.buildingA);
+                const buildingB = buildings.find(b => b.type === rel.buildingB);
+                
+                if (buildingA && buildingB) {
+                    const line = document.createElement('div');
+                    line.className = 'distance-line';
+                    
+                    const dx = buildingA.x - buildingB.x;
+                    const dy = buildingA.y - buildingB.y;
+                    const length = Math.sqrt(dx * dx + dy * dy);
+                    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                    
+                    line.style.left = `${buildingB.x}px`;
+                    line.style.top = `${buildingB.y}px`;
+                    line.style.width = `${length}px`;
+                    line.style.transform = `rotate(${angle}deg)`;
+                    
+                    container.appendChild(line);
+                    
+                    const label = document.createElement('div');
+                    label.className = 'distance-label';
+                    label.textContent = `${rel.distance}m`;
+                    label.style.left = `${buildingB.x + dx/2 - 15}px`;
+                    label.style.top = `${buildingB.y + dy/2 - 10}px`;
+                    
+                    container.appendChild(label);
+                }
+            });
+        }
+
+        function getBuildingName(type) {
+            const names = {
+                '🏢': 'Office',
+                '🍽️': 'Restaurant', 
+                '🏪': 'Shop',
+                '🏥': 'Hospital',
+                '🏫': 'School',
+                '📫': 'Post Office',
+                '🏛️': 'Bank',
+                '🏨': 'Hotel',
+                '⛽': 'Gas Station',
+                '🏬': 'Market',
+                '📚': 'Library',
+                '🎭': 'Theater',
+                '🏋️': 'Gym',
+                '☕': 'Cafe',
+                '🏰': 'Museum'
+            };
+            return names[type] || 'Building';
+        }
+
+        function clearAll() {
+            relationships = [];
+            buildings = [];
+            editingIndex = -1;
+            document.getElementById('addBtn').textContent = 'Add Relationship';
+            document.getElementById('modeIndicator').textContent = '✨ Adding Mode';
+            document.getElementById('modeIndicator').className = 'mode-indicator';
+            document.getElementById('distance').value = '';
+            
+            updateRelationshipsList();
+            
+            const container = document.getElementById('mapContainer');
+            const existingElements = container.querySelectorAll('.building, .distance-line, .distance-label');
+            existingElements.forEach(el => el.remove());
+            
+            document.getElementById('emptyState').style.display = 'flex';
+        }
+
+        function loadExample1() {
+            relationships = [
+                { buildingA: '🍽️', distance: 853, direction: 'north', buildingB: '📫', id: 1 },
+                { buildingA: '📫', distance: 492, direction: 'south', buildingB: '🏬', id: 2 }
+            ];
+            updateRelationshipsList();
+        }
+
+        function loadExample2() {
+            relationships = [
+                { buildingA: '🏪', distance: 592, direction: 'north', buildingB: '🏥', id: 1 },
+                { buildingA: '🏥', distance: 965, direction: 'south', buildingB: '🏬', id: 2 }
+            ];
+            updateRelationshipsList();
+        }
+
+        function loadExample3() {
+            relationships = [
+                { buildingA: '🍽️', distance: 300, direction: 'north', buildingB: '🏪', id: 1 },
+                { buildingA: '🏪', distance: 100, direction: 'south', buildingB: '🏢', id: 2 },
+                { buildingA: '🏢', distance: 200, direction: 'west', buildingB: '🏥', id: 3 }
+            ];
+            updateRelationshipsList();
+        }
+
+        // Initialize
+        updateRelationshipsList();
+    </script>
+</body>
+</html>
