@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Name Guessing Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .game-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .number-display {
+            font-size: 4rem;
+            font-weight: bold;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .input-container {
+            margin: 30px 0;
+        }
+        
+        input[type="text"] {
+            padding: 15px 20px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 25px;
+            width: 100%;
+            max-width: 300px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+        
+        .button {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .answer-container {
+            margin-top: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+        
+        .answer-container.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .answer-name {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #4ecdc4;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .answer-image {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            margin: 20px 0;
+        }
+        
+        .score {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        
+        .result {
+            font-size: 1.5rem;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        
+        .correct {
+            color: #4ecdc4;
+        }
+        
+        .incorrect {
+            color: #ff6b6b;
+        }
+        
+        .home-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .home-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="home-link">← Home</a>
+    
+    <div class="score">
+        Score: <span id="correct">0</span>/<span id="total">0</span>
+    </div>
+    
+    <div class="game-container">
+        <h1>Name That Person!</h1>
+        <div class="number-display" id="currentNumber"></div>
+        
+        <div class="input-container">
+            <input type="text" id="guessInput" placeholder="Enter the name..." />
+        </div>
+        
+        <button class="button" onclick="checkAnswer()">Submit</button>
+        
+        <div class="answer-container" id="answerContainer">
+            <div class="result" id="result"></div>
+            <div class="answer-name" id="answerName"></div>
+            <img class="answer-image" id="answerImage" style="display: none;" />
+            <br>
+            <button class="button" onclick="nextQuestion()">Next Question</button>
+        </div>
+    </div>
+
+    <script>
+        const gameData = {
+            10: { name: "Titus", image: "images/paste-69e477755e070c3e4a9fccb1c98eaab4be34507c.jpg" },
+            11: { name: "TED how i met your mother", image: "" },
+            12: { name: "Tony (Tony gta)", image: "images/paste-d840f1a4c53b31fb412ad81bbf55c345292a8698.jpg" },
+            13: { name: "Tim (Burton, director)", image: "images/paste-a8eff00b17a8e102819c08a8ac89e9797416e2ee.jpg" },
+            14: { name: "Terry (Gilliam, Monty Python)", image: "images/paste-cd9a4a88805c2e412e9402203eb9aca3aff262f0.jpg" },
+            15: { name: "Tilda", image: "images/paste-4bb30f494d5457112ed103c2188d5401ea663367.jpg" },
+            16: { name: "DJ (DAVID GUETTA)", image: "images/paste-2148d0109e6a080e9dbe816ef9d5b25333eedf34.jpg" },
+            17: { name: "Tucker Carlson", image: "images/paste-d08a3f4db10b6475318ba289efbf97ee2b060c72.jpg" },
+            18: { name: "Taffy (was a Welshman)", image: "images/paste-b3a01d20058d1fb797785b496b7a2f1454b83ff8.jpg" },
+            19: { name: "Tupac (Shakur)", image: "images/paste-369c50213b356a274e9313b32bce0fc14863b2b2.jpg" },
+            20: { name: "mr. Nice", image: "images/paste-71d1fa5405ce64585794591e6d1292c1fb917b01.jpg" },
+            21: { name: "Nat (King Cole)", image: "images/paste-6af2245e4c8b5241d3aa633cf659410f54b75ff3.jpg" },
+            22: { name: "Nana (Peter Pan)", image: "images/paste-87739d6410f8413f123d1bbc77516d1d658a8ac5.jpg" },
+            23: { name: "Nemo (Finding Nemo)", image: "images/paste-e2f1786ecbe408746dfbdd7ce10fa0eb8464423c.jpg" },
+            24: { name: "Nero (Roman emperor)", image: "images/paste-77764954efe95e8b9a8aa69c0d7b44c10ac6308e.jpg" },
+            25: { name: "Noel (Gallagher)", image: "images/paste-56185621cd7177c65221e7ad035a6e2d2b4fc145.jpg" },
+            26: { name: "Nish (comedian Nish Kumar)", image: "images/paste-cdb346e103d2c92321ecf6a15478a67d8348ae0a.jpg" },
+            27: { name: "Nick (Cave/", image: "images/paste-26c0302f0e1c39b82770d95239da4810e431fa69.jpg" },
+            28: { name: "Niven (David Niven)", image: "images/paste-a657961feb3f18dae31cf03414b7d10cd10fb793.jpg" },
+            29: { name: "Naboo (The Mighty Boosh)", image: "images/paste-c68095bc944083be3806abbeccbb3f63db9251e1.jpg" },
+            30: { name: "Moss (IT Crowd)", image: "images/paste-2d81c8b8589a9e43f73c20e441b1979352236c85.jpg" },
+            31: { name: "Matt (/Smith)", image: "images/paste-97753152fa1bda9db908ea0f78b8edecfa547091.jpg" },
+            32: { name: "Moon (sailor)", image: "images/paste-cb3247e8d76cb69bb1c2f371b29f7793b81ea08f.jpg" },
+            33: { name: "Mum (British for mother)", image: "" },
+            34: { name: "Mario", image: "images/paste-34a8169a2eb970d7f9b7ad4e77889520e7b887f1.png" },
+            35: { name: "Mole (Wind in the Willows)", image: "images/paste-0b6ddc85698560156af085762ae7c3fb01e9fd1c.jpg" },
+            36: { name: "M J", image: "images/paste-8b28f453c5571e9a1e21a462bebdc715d04f972e.jpg" },
+            37: { name: "Mike", image: "" },
+            38: { name: "Maeve", image: "images/paste-ce4c002cc3167c87fb22ab4bbb49f9df1ee05d83.jpg" },
+            39: { name: "MP [canident]", image: "" },
+            40: { name: "Ross (Friends/Jonathan Ross)", image: "" },
+            41: { name: "Rat", image: "images/paste-9fb776e1469479ff7b1cdab7b89f9be3e0dc104a.jpg" },
+            42: { name: "Ron (Howard/Weasley)", image: "images/paste-92b2dde31629aede00a6cc5ab6097ba6d86a9572.jpg" },
+            43: { name: "Ram (character name)", image: "images/paste-15e50dd56653e82b5d30b9c66e9083d8fe2867ac.jpg" },
+            44: { name: "Rory (gilmore)", image: "images/paste-328298f86289f1329abbf19028c4c707ee29f604.jpg" },
+            45: { name: "Raul", image: "images/paste-b5457699037315536bab18393d64129b8a55ce08.jpg" },
+            46: { name: "Rich (riche)", image: "images/paste-9cbeebccde6f9993988cfc4089b28c9f607545ac.jpg" },
+            47: { name: "Rick [and morty[", image: "images/image-5787262808a5838d72018f7194d06025ebd25730.png" },
+            48: { name: "Raven", image: "images/paste-7d9c01df050f21494ad5f7f84631f110b9f6b1c3.jpg" },
+            49: { name: "Rob [sophie]", image: "" },
+            50: { name: "Liz (Elizabeth", image: "images/paste-e95f992645756919b5275894c8cac1ebeb402cc6.jpg" },
+            51: { name: "Lottie", image: "" },
+            52: { name: "Luna (Lovegood", image: "images/paste-4e5ee44cde37eb810998936a4bb6b080029b3635.jpg" },
+            53: { name: "Lamb", image: "images/paste-d298a148f6444d7289e4544dc4bc6a67f49c4b46.jpg" },
+            54: { name: "Lara Croft", image: "images/paste-8d8da5a926db986fe317c0ad7e75dba11713412d.jpg" },
+            55: { name: "Lily (Potter reference)", image: "images/paste-03b7d19c67a18e273d39cd0ac3c1155b5791a168.jpg" },
+            56: { name: "Lush (CEO)", image: "images/paste-a86e58d7f143dbf4f61fbb1382908f25cc8bc08d.jpg" },
+            57: { name: "Luke (Skywalker)", image: "images/paste-a6fc62fb53edd6bcea1e143fefb6f76b6654c610.jpg" },
+            58: { name: "Liv (Tyler)", image: "images/paste-30e1d2c54d7eda67d05167143bbfd17ba07bc1f0.jpg" },
+            59: { name: "Lupin (Remu", image: "images/paste-62a951e88ffb7b496b58e90ec45c093b8a7fb1d5.jpg" },
+            60: { name: "Jez (Jeremy Usborne", image: "images/paste-51c13f9b940d076cd151cbb5b75ddc3eb5120266.jpg" },
+            61: { name: "JD - scrubs", image: "images/paste-d80026b7516a0f1ccbf1dbcf85d153f6d433e9af.jpg" },
+            62: { name: "Jane (Mary)", image: "images/paste-57c5f732546d10f4e6ccc55c40dc2a366a7ac2b0.jpg" },
+            63: { name: "Jim", image: "images/paste-b3db6aaafc1a13d62575aef5e65ba3d598707254.jpg" },
+            64: { name: "Sharon (Osbourne)", image: "images/paste-2cd46f2b0cfd4d1db3a84eff3f6d4c18f2806181.jpg" },
+            65: { name: "Sherlock Holmes", image: "images/paste-c7c40bbcbed56f01648bf4ab19280d574227f5c8.jpg" },
+            66: { name: "JoJo (Moyes)", image: "images/paste-23289994a026551d1e7b55ccdf92c3149fcc3ed0.jpg" },
+            67: { name: "Jack Nic", image: "images/paste-7ed17077d18cbb66d79f0efbc48fa6ac40a9408e.jpg" },
+            68: { name: "Shaft (character name)", image: "images/paste-04feb92cb6b47b1a0d5bfcd6f4f2acfd204f4cff.jpg" },
+            69: { name: "Sheep (shawn)", image: "images/paste-d9225429f4a239f9c5a963800750b525212eb8ad.jpg" },
+            70: { name: "Kiss", image: "images/paste-fcaa0e986ac5e33c0b3dcbb58c73d81225b877b3.jpg" },
+            71: { name: "Cat (whiskey)", image: "" },
+            72: { name: "Kane (and lynch)", image: "images/paste-3e08a7a3e855d4ac556882f9160f00d7c12b23b5.jpg" },
+            73: { name: "KiM", image: "images/960px-Kim_Jong-un_April_2019_(cropped).jpg" },
+            74: { name: "Kurt [cobain]", image: "images/paste-c1dfc373c72fc6760e0a83b617c2df8550da8897.jpg" },
+            75: { name: "Kylie (Minogue)", image: "images/paste-ea2c29fc2374841102269fcf0b5f5263b795bda4.jpg" },
+            76: { name: "Cash (Johnny)", image: "images/paste-b7131117a4438ad2c8487843e8ce9c6057ff1e25.jpg" },
+            77: { name: "Gaga (Lady Gaga)", image: "images/paste-404d6ce948873db4c1abe4ce1a523f005046e365.jpg" },
+            78: { name: "Kev (Kevin & Perry) [", image: "images/paste-86614ea9ac7e55200bc521643d7cec8119169d2d.jpg" },
+            79: { name: "Cap", image: "" },
+            80: { name: "Fozzie (Bear)", image: "images/paste-7756db1ce0271ba55908d0699d23dae70aa484d9.jpg" },
+            81: { name: "Fat (controller thomas the tank)", image: "images/paste-891d83258319a8201be69817ebd0c0193b01b50c.jpg" },
+            82: { name: "Fan (Kristen Schaal, Mel)", image: "images/paste-0f0c1decd7665578b30738f3bc63019174a24cd7.jpg" },
+            83: { name: "Vamp – Metal Gear Solid 2", image: "images/paste-19623542a7282e4bc7cd64f7fdb52be51d4b471c.jpg" },
+            84: { name: "Fry (Stephen)", image: "images/paste-41dfaaa04fe8cd918682a02a8816d4bca4b73178.jpg" },
+            85: { name: "Phil (Mitchell/Collins)", image: "images/paste-a8b18992870e6d910ef0ec52c02010b889576a0c.jpg" },
+            86: { name: "Fish", image: "" },
+            87: { name: "Vicky", image: "" },
+            88: { name: "Viv (Vivienne Westwood)", image: "images/paste-8cdbf0ac1a7757689ab8703d0a7f43fab05e0178.jpg" },
+            89: { name: "Phoebe (Waller-Bridge)", image: "images/paste-eaca1bd9ccd18bf90b50fb209caea2efa2025921.jpg" },
+            90: { name: "Buzz (Lightyear)", image: "images/paste-e74762a90377b74c2c0c69da2e92830d630a02c0.png" },
+            91: { name: "Bat", image: "images/251mkxfwfmt71.jpg" },
+            92: { name: "Pan (Peter Pan)", image: "images/paste-7504ff03f72cc8badf0305cc78116e3ea600ba04.jpg" },
+            93: { name: "Pam (office)", image: "images/paste-473e93da61aab1d32630a55374f61268ff325201.jpg" },
+            94: { name: "Burr (Bill)", image: "images/paste-c1e83b5d53f5364d1446859cb26426392168755a.jpg" },
+            95: { name: "Bill (Nighy", image: "images/paste-1422236e6f8001a57ca9be20ebbd14d173d74fb5.jpg" },
+            96: { name: "Posh (Spice Girls)", image: "images/paste-0489ae5f8c6869f210c8842d4a838f4e8d6152e1.jpg" },
+            97: { name: "Puck (Shakespeare)", image: "images/paste-174f71aa5a7a966429582888315c84cd3d9c4f14.jpg" },
+            98: { name: "Buffy (Summers)", image: "images/paste-c2bce1fdd543c2b190ad5044336af3ec7d00b2c3.jpg" },
+            99: { name: "Pip (Great Expectations)", image: "images/paste-ec4b6f13bd6d10119312dd3a6d1475b367ca7788.jpg" }
+        };
+
+        let currentQuestion = null;
+        let correctAnswers = 0;
+        let totalAnswers = 0;
+        let hasAnswered = false;
+
+        function getRandomNumber() {
+            const numbers = Object.keys(gameData);
+            return numbers[Math.floor(Math.random() * numbers.length)];
+        }
+
+        function startNewQuestion() {
+            currentQuestion = getRandomNumber();
+            document.getElementById('currentNumber').textContent = currentQuestion;
+            document.getElementById('guessInput').value = '';
+            document.getElementById('guessInput').focus();
+            document.getElementById('answerContainer').classList.remove('show');
+            hasAnswered = false;
+        }
+
+        function checkAnswer() {
+            if (hasAnswered) return;
+            
+            const userGuess = document.getElementById('guessInput').value.trim();
+            const correctAnswer = gameData[currentQuestion].name;
+            
+            const result = document.getElementById('result');
+            const answerName = document.getElementById('answerName');
+            const answerImage = document.getElementById('answerImage');
+            
+            totalAnswers++;
+            hasAnswered = true;
+            
+            // Simple matching - you can make this more sophisticated
+            const isCorrect = userGuess.toLowerCase() === correctAnswer.toLowerCase() || 
+                              correctAnswer.toLowerCase().includes(userGuess.toLowerCase()) ||
+                              userGuess.toLowerCase().includes(correctAnswer.toLowerCase());
+            
+            if (isCorrect) {
+                correctAnswers++;
+                result.textContent = '✅ Correct!';
+                result.className = 'result correct';
+            } else {
+                result.textContent = '❌ Incorrect';
+                result.className = 'result incorrect';
+            }
+            
+            answerName.textContent = correctAnswer;
+            
+            if (gameData[currentQuestion].image) {
+                answerImage.src = gameData[currentQuestion].image;
+                answerImage.style.display = 'block';
+                answerImage.onerror = function() {
+                    this.style.display = 'none';
+                };
+            } else {
+                answerImage.style.display = 'none';
+            }
+            
+            document.getElementById('answerContainer').classList.add('show');
+            updateScore();
+        }
+
+        function nextQuestion() {
+            startNewQuestion();
+        }
+
+        function updateScore() {
+            document.getElementById('correct').textContent = correctAnswers;
+            document.getElementById('total').textContent = totalAnswers;
+        }
+
+        // Allow Enter key to submit answer
+        document.getElementById('guessInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                if (hasAnswered) {
+                    nextQuestion();
+                } else {
+                    checkAnswer();
+                }
+            }
+        });
+
+        // Start the first question
+        startNewQuestion();
+    </script>
+</body>
+</html>
