@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Name Guessing Game</title>
-   <style>
+ <style>
         * {
             margin: 0;
             padding: 0;
@@ -37,7 +37,6 @@
             font-weight: bold;
             margin: 20px 0;
             color: #005a9c; /* Muted blue for the number */
-            /* Removed gradient text styles */
         }
         
         .input-container {
@@ -54,14 +53,14 @@
             text-align: center;
             background: #fff;
             color: #333;
-            box-shadow: none; /* Removed inset shadow */
+            box-shadow: none;
             transition: border-color 0.3s ease;
         }
         
         input[type="text"]:focus {
             outline: none;
             border-color: #005a9c; /* Blue border on focus */
-            transform: none; /* Removed scale effect */
+            transform: none;
             box-shadow: none;
         }
         
@@ -110,7 +109,8 @@
             max-height: 200px;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            margin: 20px 0;
+            /* --- THIS IS THE FIX --- */
+            margin: 20px auto; /* Keeps top/bottom margin, centers left/right */
             border: 1px solid #e0e0e0;
         }
         
