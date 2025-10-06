@@ -3,105 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>L3 Year 2 Camera Bingo</title>
+  <title>Teacher Bingo Mode 🎓</title>
   <style>
     body {
-      font-family: 'Arial', sans-serif;
-      margin: 0;
-      padding: 20px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #764ba2, #667eea);
       color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .container {
-      max-width: 600px;
-      width: 100%;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 20px;
+      margin: 0;
       padding: 40px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
     }
-
-    .header h1 {
+    h1 {
       font-size: 2.4em;
       margin-bottom: 10px;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
-
-    .header p {
-      font-size: 1.2em;
-      opacity: 0.9;
+    p {
+      opacity: 0.8;
       margin-bottom: 30px;
     }
-
-    .bingo-card {
-      background: rgba(255, 255, 255, 0.95);
-      color: #333;
-      border-radius: 20px;
-      padding: 30px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-      margin-bottom: 30px;
-    }
-
-    .card-title {
-      font-size: 1.6em;
-      font-weight: bold;
-      margin-bottom: 20px;
-      color: #4a5568;
-      border-bottom: 3px solid #667eea;
-      padding-bottom: 10px;
-    }
-
-    .bingo-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .bingo-cell {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
-      padding: 20px 12px;
-      text-align: center;
-      font-size: 1.05em;
-      font-weight: 600;
-      border-radius: 12px;
-      min-height: 80px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      border: 4px solid transparent;
-      user-select: none;
-    }
-
-    .bingo-cell:hover {
-      transform: scale(1.08);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-    }
-
-    .bingo-cell.marked {
-      background: linear-gradient(135deg, #48bb78, #38a169);
-      border-color: #FFD700;
-      transform: scale(1.1);
-      box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-    }
-
-    .center-free {
-      background: linear-gradient(135deg, #FFD700, #FFA500) !important;
-      color: #333 !important;
-      font-weight: bold;
-      font-size: 1.2em;
-    }
-
     .generate-btn {
       background: linear-gradient(135deg, #FFD700, #FFA500);
       color: #333;
@@ -112,114 +34,124 @@
       font-weight: bold;
       cursor: pointer;
       transition: all 0.3s ease;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
-
     .generate-btn:hover {
       transform: translateY(-3px);
       box-shadow: 0 8px 25px rgba(0,0,0,0.3);
     }
-
-    .progress {
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 15px;
-      padding: 15px;
-      margin-top: 20px;
-    }
-
-    .progress-text {
-      font-size: 1.1em;
-      margin-bottom: 10px;
-    }
-
-    .progress-bar {
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 10px;
-      height: 20px;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      background: linear-gradient(135deg, #48bb78, #38a169);
-      height: 100%;
-      border-radius: 10px;
-      width: 0%;
-      transition: width 0.3s ease;
-    }
-
-    .bingo-alert {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: linear-gradient(135deg, #FFD700, #FFA500);
-      color: #333;
-      padding: 30px 50px;
+    .terms-container {
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(8px);
       border-radius: 20px;
-      font-size: 2em;
-      font-weight: bold;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-      z-index: 1000;
-      display: none;
+      padding: 30px;
+      width: 90%;
+      max-width: 800px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    }
+    .term {
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(255,255,255,0.3);
+    }
+    .term h3 {
+      color: #FFD700;
+      margin: 0 0 8px 0;
+    }
+    .term p {
+      margin: 0;
+      color: #f0f0f0;
+      line-height: 1.5em;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>📷 L3 Year 2 Camera Bingo 📷</h1>
-      <p>Click a term when you spot it. Get 3 in a row to win!</p>
-    </div>
+  <h1>🎓 Teacher Bingo Mode</h1>
+  <p>Click the button to generate 8 random camera terms with definitions to read aloud.</p>
 
-    <button class="generate-btn" onclick="generateNewCard()">🎲 New Random Card</button>
+  <button class="generate-btn" onclick="generateTerms()">🎲 New Random Terms</button>
 
-    <div class="bingo-card">
-      <div class="card-title">My Camera Bingo Card</div>
-      <div class="bingo-grid" id="bingoGrid"></div>
-      <div class="progress">
-        <div class="progress-text" id="progressText">Terms marked: 0/8</div>
-        <div class="progress-bar">
-          <div class="progress-fill" id="progressFill"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="bingo-alert" id="bingoAlert">🎉 BINGO! 🎉</div>
+  <div class="terms-container" id="termsContainer"></div>
 
   <script>
-    const bingoTerms = [
+    const termDefinitions = {
       // Core Camera Settings
-      "Manual Mode", "ISO", "Shutter Speed", "Aperture", "White Balance",
-      "Depth of Field", "Exposure Triangle", "Focus Pull", "Dynamic Range",
-
-      // Composition & Framing
-      "Rule of Thirds", "Leading Lines", "Symmetry", "Framing", "Head Space",
-      "Negative Space", "Balance", "Foreground Interest", "Point of View (POV)",
-
+      "Manual Mode": "A camera setting where you control aperture, shutter speed, and ISO yourself.",
+      "ISO": "Controls the camera's sensitivity to light; higher ISO = brighter but more noise.",
+      "Shutter Speed": "How long the shutter stays open; affects motion blur and exposure.",
+      "Aperture": "The size of the lens opening; affects depth of field and exposure.",
+      "White Balance": "Adjusts colors to make whites look neutral under different lighting.",
+      "Depth of Field": "How much of the image is in focus; shallow = blurred background.",
+      "Exposure Triangle": "The relationship between ISO, shutter speed, and aperture.",
+      "Focus Pull": "Changing focus from one subject to another in a shot.",
+      "Dynamic Range": "The range of light between the darkest and brightest areas a camera can capture.",
+      
+      // Composition
+      "Rule of Thirds": "Divides the frame into thirds; subjects placed on lines look balanced.",
+      "Leading Lines": "Lines in the scene that guide the viewer’s eyes to the subject.",
+      "Symmetry": "When both sides of the frame mirror each other for balance.",
+      "Framing": "Using objects in the scene to frame the subject.",
+      "Head Space": "The space above a subject’s head; too much or too little feels awkward.",
+      "Negative Space": "Empty space that surrounds the subject, emphasizing them.",
+      "Balance": "Visually even distribution of elements in the frame.",
+      "Foreground Interest": "Objects in the front that add depth and context.",
+      "Point of View (POV)": "The angle or perspective from which the camera views the scene.",
+      
       // Shot Types
-      "Close Up", "Extreme Close Up", "Medium Close Up", "Wide Shot", 
-      "Establishing Shot", "Over-the-Shoulder", "Two Shot", "Low Angle", "High Angle",
+      "Close Up": "A shot focusing tightly on a subject’s face or object detail.",
+      "Extreme Close Up": "Very tight shot showing small details like eyes or hands.",
+      "Medium Close Up": "Frames from chest up; used for interviews.",
+      "Wide Shot": "Shows the full subject and their surroundings.",
+      "Establishing Shot": "Sets the scene’s location at the start of a sequence.",
+      "Over-the-Shoulder": "Camera placed behind a character to show their view.",
+      "Two Shot": "A shot including two people, often in conversation.",
+      "Low Angle": "Camera is below the subject; makes them look powerful.",
+      "High Angle": "Camera looks down on the subject; makes them look smaller or weaker.",
 
       // Lighting
-      "Key Light", "Fill Light", "Back Light", "Three-Point Lighting", 
-      "Silhouette", "Hard Light", "Soft Light", "Practical Light",
+      "Key Light": "Main light source; defines shape and detail.",
+      "Fill Light": "Softens shadows created by the key light.",
+      "Back Light": "Lights subject from behind; creates separation.",
+      "Three-Point Lighting": "Setup using key, fill, and back lights.",
+      "Silhouette": "Subject appears dark against a bright background.",
+      "Hard Light": "Strong shadows; creates dramatic effect.",
+      "Soft Light": "Gentle shadows; flattering for portraits.",
+      "Practical Light": "Visible light source in the scene (e.g. lamp).",
 
-      // Movement & Techniques
-      "Pan", "Tilt", "Tracking Shot", "Handheld", "Static Shot", 
-      "Rack Focus", "Zoom", "Dolly Zoom", "Whip Pan",
+      // Movement
+      "Pan": "Camera rotates horizontally.",
+      "Tilt": "Camera rotates vertically.",
+      "Tracking Shot": "Camera moves alongside or follows subject.",
+      "Handheld": "Shot with camera held by hand; feels natural or chaotic.",
+      "Static Shot": "Camera stays completely still.",
+      "Rack Focus": "Shift focus from one subject to another.",
+      "Zoom": "Lens changes focal length to magnify.",
+      "Dolly Zoom": "Camera moves opposite to zoom for a disorienting effect.",
+      "Whip Pan": "Fast pan creating a blur effect.",
 
       // Creative Concepts
-      "Mise-en-Scène", "Composition", "Continuity", "Match Cut", 
-      "Jump Cut", "Montage", "180-Degree Rule", "Shot Reverse Shot",
+      "Mise-en-Scène": "Everything in the frame – setting, props, lighting, costume, acting.",
+      "Composition": "The arrangement of visual elements in a frame.",
+      "Continuity": "Consistent visual flow between shots.",
+      "Match Cut": "A cut between two visually similar shots.",
+      "Jump Cut": "Abrupt cut that skips time or action.",
+      "Montage": "Sequence of shots showing time passing or a theme.",
+      "180-Degree Rule": "Keeping the camera on one side of the action line for spatial consistency.",
+      "Shot Reverse Shot": "Alternating shots between characters in dialogue.",
 
-      // Technical Terms
-      "Noise", "Grain", "Frame Rate", "Resolution", "Aspect Ratio",
-      "Sensor Size", "Bokeh", "Histogram", "Overexposure", "Underexposure"
-    ];
-
-    let markedCount = 0;
+      // Technical
+      "Noise": "Grainy distortion caused by high ISO or low light.",
+      "Grain": "Film texture that adds character or grit.",
+      "Frame Rate": "Number of frames per second; affects motion smoothness.",
+      "Resolution": "Number of pixels in the image; affects detail.",
+      "Aspect Ratio": "Shape of the frame (e.g. 16:9 widescreen).",
+      "Sensor Size": "Physical size of the camera sensor; affects depth of field and quality.",
+      "Bokeh": "Aesthetic quality of blurred background lights.",
+      "Histogram": "Graph showing brightness distribution in an image.",
+      "Overexposure": "Too much light; details lost in highlights.",
+      "Underexposure": "Too little light; details lost in shadows."
+    };
 
     function shuffleArray(array) {
       const shuffled = [...array];
@@ -230,74 +162,20 @@
       return shuffled;
     }
 
-    function generateNewCard() {
-      const grid = document.getElementById('bingoGrid');
-      const shuffledTerms = shuffleArray(bingoTerms);
-      const cardTerms = shuffledTerms.slice(0, 8);
+    function generateTerms() {
+      const container = document.getElementById('termsContainer');
+      const allTerms = Object.keys(termDefinitions);
+      const randomTerms = shuffleArray(allTerms).slice(0, 8);
 
-      markedCount = 0;
-      updateProgress();
-
-      grid.innerHTML = `
-        ${cardTerms.slice(0, 4).map(term =>
-          `<div class="bingo-cell" onclick="toggleCell(this)">${term}</div>`
-        ).join('')}
-        <div class="bingo-cell center-free marked">FREE<br>SPACE</div>
-        ${cardTerms.slice(4, 8).map(term =>
-          `<div class="bingo-cell" onclick="toggleCell(this)">${term}</div>`
-        ).join('')}
-      `;
+      container.innerHTML = randomTerms.map(term => `
+        <div class="term">
+          <h3>${term}</h3>
+          <p>${termDefinitions[term]}</p>
+        </div>
+      `).join('');
     }
 
-    function toggleCell(cell) {
-      const wasMarked = cell.classList.contains('marked');
-      cell.classList.toggle('marked');
-
-      if (!cell.classList.contains('center-free')) {
-        markedCount += wasMarked ? -1 : 1;
-        updateProgress();
-      }
-      checkForBingo();
-    }
-
-    function updateProgress() {
-      const progressText = document.getElementById('progressText');
-      const progressFill = document.getElementById('progressFill');
-
-      progressText.textContent = `Terms marked: ${markedCount}/8`;
-      progressFill.style.width = `${(markedCount / 8) * 100}%`;
-    }
-
-    function checkForBingo() {
-      const cells = Array.from(document.querySelectorAll('.bingo-cell'));
-      const grid = [
-        [cells[0], cells[1], cells[2]],
-        [cells[3], cells[4], cells[5]],
-        [cells[6], cells[7], cells[8]]
-      ];
-
-      // rows
-      for (let row of grid) {
-        if (row.every(c => c.classList.contains('marked'))) return showBingo();
-      }
-      // cols
-      for (let i = 0; i < 3; i++) {
-        if ([grid[0][i], grid[1][i], grid[2][i]].every(c => c.classList.contains('marked')))
-          return showBingo();
-      }
-      // diagonals
-      if ([grid[0][0], grid[1][1], grid[2][2]].every(c => c.classList.contains('marked')) ||
-          [grid[0][2], grid[1][1], grid[2][0]].every(c => c.classList.contains('marked')))
-        return showBingo();
-    }
-
-    function showBingo() {
-      const alert = document.getElementById('bingoAlert');
-      alert.style.display = 'block';
-      setTimeout(() => alert.style.display = 'none', 3000);
-    }
-
-    generateNewCard();
+    generateTerms();
   </script>
 </body>
 </html>
