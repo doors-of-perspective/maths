@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shot Type Speed Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .option-btn {
+            transition: all 0.2s ease;
+        }
+        .option-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .option-btn.correct {
+            background-color: #10b981 !important;
+            color: white;
+            transform: scale(1.05);
+        }
+        .option-btn.incorrect {
+            background-color: #ef4444 !important;
+            color: white;
+            animation: shake 0.4s;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .image-container {
+            background: #1f2937;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        .image-container img {
+            width: 100%;
+            height: 400px;
+            object-fit: contain;
+            background: #111827;
+        }
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-4">
+
+    <div class="max-w-5xl mx-auto">
+        
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <h1 class="text-4xl md:text-5xl font-bold text-blue-400 mb-2">Shot Type Speed Quiz</h1>
+            <p id="instructions" class="text-gray-400 text-lg">Identify the shot type as quickly as you can!</p>
+        </div>
+
+        <!-- Timer and Score -->
+        <div class="flex flex-col md:flex-row items-center justify-between mb-6 bg-gray-800 p-4 rounded-lg">
+            <div class="flex items-center space-x-6 mb-4 md:mb-0">
+                <div class="text-center">
+                    <div class="text-sm text-gray-400">Time</div>
+                    <div id="timer" class="text-3xl font-mono font-bold text-yellow-400">60</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-sm text-gray-400">Score</div>
+                    <div id="score" class="text-3xl font-bold text-green-400">0</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-sm text-gray-400">Round</div>
+                    <div id="round" class="text-3xl font-bold text-blue-400">0/10</div>
+                </div>
+            </div>
+            <button id="startButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-transform transform hover:scale-105">
+                Start Quiz
+            </button>
+        </div>
+
+        <!-- Main Game Area -->
+        <div id="gameArea" class="hidden">
+            <!-- Image Display -->
+            <div class="image-container mb-6">
+                <img id="shotImage" src="" alt="Shot Type Image" class="pulse-animation">
+            </div>
+
+            <!-- Options -->
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                <button class="option-btn bg-gray-700 hover:bg-gray-600 text-white font-semibold py-4 px-6 rounded-lg text-lg" data-answer="extreme-close-up">Extreme Close Up</button>
+                <button class="option-btn bg-gray-700 hover:bg-gray-600 text-white font-semibold py-4 px-6 rounded-lg text-lg" data-answer="close-up">Close Up</button>
+                <button class="option-btn bg-gray-700 hover:bg-gray-600 text-white font-semibold py-4 px-6 rounded-lg text-lg" data-answer="medium-close-up">Medium Close Up</button>
+                <button class="option-btn bg-gray-700 hover:bg-gray-600 text-white font-semibold py-4 px-6 rounded-lg text-lg" data-answer="medium-shot">Medium Shot</button>
+                <button class="option-btn bg-gray-700 hover:bg-gray-600 text-white font-semibold py-4 px-6 rounded-lg text-lg" data-answer="wide-shot">Wide Shot</button>
+                <button class="option-btn bg-gray-700 hover:bg-gray-600 text-white font-semibold py-4 px-6 rounded-lg text-lg" data-answer="extreme-wide-shot">Extreme Wide Shot</button>
+            </div>
+
+            <!-- Feedback -->
+            <div id="feedback" class="text-center text-xl font-semibold h-8"></div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="resultsScreen" class="hidden bg-gray-800 rounded-2xl p-8 text-center">
+            <h2 class="text-4xl font-bold mb-4" id="resultsTitle"></h2>
+            <div class="text-6xl font-bold text-blue-400 mb-4" id="finalScore"></div>
+            <p class="text-xl text-gray-300 mb-6" id="accuracy"></p>
+            
+            <div class="bg-gray-700 rounded-lg p-6 mb-6">
+                <h3 class="text-2xl font-semibold mb-4 text-yellow-400">Your Performance</h3>
+                <div class="grid grid-cols-2 gap-4 text-lg">
+                    <div>
+                        <div class="text-gray-400">Correct Answers</div>
+                        <div class="text-2xl font-bold text-green-400" id="correctCount">0</div>
+                    </div>
+                    <div>
+                        <div class="text-gray-400">Average Time</div>
+                        <div class="text-2xl font-bold text-yellow-400" id="avgTime">0s</div>
+                    </div>
+                </div>
+            </div>
+
+            <button id="playAgainButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-transform transform hover:scale-105 mr-4">
+                Play Again
+            </button>
+            <button id="bonusButton" class="hidden bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-8 rounded-lg transition-transform transform hover:scale-105">
+                Unlock Bonus! 🌟
+            </button>
+        </div>
+
+        <!-- Bonus Round -->
+        <div id="bonusRound" class="hidden mt-6 bg-gray-800 rounded-2xl p-8">
+            <h2 class="text-3xl font-bold text-yellow-400 text-center mb-4">🌟 Bonus Challenge 🌟</h2>
+            <p class="text-lg text-gray-300 mb-4 text-center">Pick one shot type from the quiz. Describe a scene where you'd use it and explain why it would be effective for that moment.</p>
+            
+            <div class="bg-gray-700 rounded-lg p-4 mb-4">
+                <label class="block text-sm font-semibold mb-2 text-gray-300">Shot Type:</label>
+                <select id="bonusShot" class="w-full p-3 bg-gray-600 rounded-lg text-white focus:ring-2 focus:ring-yellow-400 focus:outline-none">
+                    <option value="">-- Select a shot type --</option>
+                    <option value="extreme-close-up">Extreme Close Up</option>
+                    <option value="close-up">Close Up</option>
+                    <option value="medium-close-up">Medium Close Up</option>
+                    <option value="medium-shot">Medium Shot</option>
+                    <option value="wide-shot">Wide Shot</option>
+                    <option value="extreme-wide-shot">Extreme Wide Shot</option>
+                </select>
+            </div>
+
+            <textarea id="bonusAnswer" class="w-full p-4 bg-gray-700 rounded-lg text-white focus:ring-2 focus:ring-yellow-400 focus:outline-none" rows="4" placeholder="Example: I would use an Extreme Close Up on a character's trembling hands to show their nervousness before a big moment. This shot type emphasizes small details and creates tension..."></textarea>
+            
+            <p class="text-center text-sm text-gray-400 mt-4">This is a creative thinking exercise - there are no wrong answers!</p>
+        </div>
+
+    </div>
+
+    <script>
+        // Shot types configuration - UPDATE THESE FILENAMES TO MATCH YOUR IMAGES
+        const shotTypes = [
+            { filename: 'extreme-close-up-1.jpg', answer: 'extreme-close-up', movie: 'Example Film' },
+            { filename: 'extreme-close-up-2.jpg', answer: 'extreme-close-up', movie: 'Example Film' },
+            { filename: 'close-up-1.jpg', answer: 'close-up', movie: 'Example Film' },
+            { filename: 'close-up-2.jpg', answer: 'close-up', movie: 'Example Film' },
+            { filename: 'medium-close-up-1.jpg', answer: 'medium-close-up', movie: 'Example Film' },
+            { filename: 'medium-close-up-2.jpg', answer: 'medium-close-up', movie: 'Example Film' },
+            { filename: 'medium-shot-1.jpg', answer: 'medium-shot', movie: 'Example Film' },
+            { filename: 'medium-shot-2.jpg', answer: 'medium-shot', movie: 'Example Film' },
+            { filename: 'wide-shot-1.jpg', answer: 'wide-shot', movie: 'Example Film' },
+            { filename: 'wide-shot-2.jpg', answer: 'wide-shot', movie: 'Example Film' },
+            { filename: 'extreme-wide-shot-1.jpg', answer: 'extreme-wide-shot', movie: 'Example Film' },
+            { filename: 'extreme-wide-shot-2.jpg', answer: 'extreme-wide-shot', movie: 'Example Film' }
+        ];
+
+        // Game state
+        let currentRound = 0;
+        let score = 0;
+        let timeLeft = 60;
+        let timerInterval;
+        let gameActive = false;
+        let shuffledShots = [];
+        let roundStartTime;
+        let responseTimes = [];
+
+        // DOM elements
+        const startButton = document.getElementById('startButton');
+        const gameArea = document.getElementById('gameArea');
+        const resultsScreen = document.getElementById('resultsScreen');
+        const shotImage = document.getElementById('shotImage');
+        const timerDisplay = document.getElementById('timer');
+        const scoreDisplay = document.getElementById('score');
+        const roundDisplay = document.getElementById('round');
+        const feedback = document.getElementById('feedback');
+        const optionButtons = document.querySelectorAll('.option-btn');
+        const playAgainButton = document.getElementById('playAgainButton');
+        const bonusButton = document.getElementById('bonusButton');
+        const bonusRound = document.getElementById('bonusRound');
+
+        // Event listeners
+        startButton.addEventListener('click', startGame);
+        playAgainButton.addEventListener('click', resetGame);
+        bonusButton.addEventListener('click', () => {
+            bonusRound.classList.remove('hidden');
+            bonusButton.classList.add('hidden');
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        });
+
+        optionButtons.forEach(btn => {
+            btn.addEventListener('click', handleAnswer);
+        });
+
+        function startGame() {
+            gameActive = true;
+            currentRound = 0;
+            score = 0;
+            timeLeft = 60;
+            responseTimes = [];
+            
+            startButton.classList.add('hidden');
+            gameArea.classList.remove('hidden');
+            resultsScreen.classList.add('hidden');
+            
+            // Shuffle shots and pick 10
+            shuffledShots = [...shotTypes].sort(() => Math.random() - 0.5).slice(0, 10);
+            
+            timerInterval = setInterval(updateTimer, 1000);
+            loadNextRound();
+        }
+
+        function updateTimer() {
+            timeLeft--;
+            timerDisplay.textContent = timeLeft;
+            
+            if (timeLeft <= 10) {
+                timerDisplay.classList.add('text-red-500');
+            }
+            
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        function loadNextRound() {
+            if (currentRound >= 10) {
+                endGame();
+                return;
+            }
+            
+            roundStartTime = Date.now();
+            const currentShot = shuffledShots[currentRound];
+            shotImage.src = `shots/${currentShot.filename}`;
+            shotImage.classList.add('pulse-animation');
+            
+            currentRound++;
+            roundDisplay.textContent = `${currentRound}/10`;
+            
+            // Reset buttons
+            optionButtons.forEach(btn => {
+                btn.classList.remove('correct', 'incorrect');
+                btn.disabled = false;
+            });
+            
+            feedback.textContent = '';
+        }
+
+        function handleAnswer(e) {
+            if (!gameActive) return;
+            
+            const selectedAnswer = e.target.dataset.answer;
+            const correctAnswer = shuffledShots[currentRound - 1].answer;
+            const responseTime = ((Date.now() - roundStartTime) / 1000).toFixed(1);
+            
+            // Disable all buttons
+            optionButtons.forEach(btn => btn.disabled = true);
+            
+            if (selectedAnswer === correctAnswer) {
+                e.target.classList.add('correct');
+                const points = Math.max(10 - Math.floor(responseTime / 2), 5); // Faster = more points
+                score += points;
+                scoreDisplay.textContent = score;
+                feedback.textContent = `✓ Correct! +${points} points (${responseTime}s)`;
+                feedback.className = 'text-center text-xl font-semibold h-8 text-green-400';
+                responseTimes.push(parseFloat(responseTime));
+            } else {
+                e.target.classList.add('incorrect');
+                // Highlight correct answer
+                optionButtons.forEach(btn => {
+                    if (btn.dataset.answer === correctAnswer) {
+                        btn.classList.add('correct');
+                    }
+                });
+                feedback.textContent = '✗ Incorrect';
+                feedback.className = 'text-center text-xl font-semibold h-8 text-red-400';
+            }
+            
+            shotImage.classList.remove('pulse-animation');
+            
+            // Load next round after delay
+            setTimeout(() => {
+                if (gameActive) {
+                    loadNextRound();
+                }
+            }, 1500);
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(timerInterval);
+            gameArea.classList.add('hidden');
+            resultsScreen.classList.remove('hidden');
+            
+            const correctAnswers = responseTimes.length;
+            const accuracy = ((correctAnswers / 10) * 100).toFixed(0);
+            const avgResponseTime = correctAnswers > 0 
+                ? (responseTimes.reduce((a, b) => a + b, 0) / correctAnswers).toFixed(1) 
+                : 0;
+            
+            document.getElementById('resultsTitle').textContent = 
+                accuracy >= 80 ? '🎉 Excellent Work!' : 
+                accuracy >= 60 ? '👏 Good Job!' : 
+                'Keep Practicing!';
+            
+            document.getElementById('finalScore').textContent = `${score} points`;
+            document.getElementById('accuracy').textContent = `${accuracy}% accuracy (${correctAnswers}/10 correct)`;
+            document.getElementById('correctCount').textContent = correctAnswers;
+            document.getElementById('avgTime').textContent = `${avgResponseTime}s`;
+            
+            // Show bonus button if they got 80% or higher
+            if (accuracy >= 80) {
+                bonusButton.classList.remove('hidden');
+            }
+        }
+
+        function resetGame() {
+            gameActive = false;
+            clearInterval(timerInterval);
+            
+            currentRound = 0;
+            score = 0;
+            timeLeft = 60;
+            responseTimes = [];
+            
+            timerDisplay.textContent = '60';
+            timerDisplay.classList.remove('text-red-500');
+            scoreDisplay.textContent = '0';
+            roundDisplay.textContent = '0/10';
+            
+            gameArea.classList.add('hidden');
+            resultsScreen.classList.add('hidden');
+            bonusRound.classList.add('hidden');
+            startButton.classList.remove('hidden');
+            bonusButton.classList.add('hidden');
+            
+            document.getElementById('bonusShot').value = '';
+            document.getElementById('bonusAnswer').value = '';
+        }
+    </script>
+</body>
+</html>
