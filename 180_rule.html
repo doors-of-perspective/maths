@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced 180° Rule & Shot Proximity Quiz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 900px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+        }
+
+        .stat {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+
+        .timer {
+            font-size: 2em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .timer.warning {
+            color: #ff4444;
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .stage {
+            position: relative;
+            background: white;
+            border-radius: 15px;
+            height: 500px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .line-180 {
+            position: absolute;
+            height: 3px;
+            background: #ff6b6b;
+            transform-origin: 0 50%;
+            box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+            z-index: 1;
+        }
+
+        .actor {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #ff9f43;
+            border: 4px solid #ee5a24;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 18px;
+            z-index: 2;
+            cursor: default;
+        }
+
+        .table {
+            position: absolute;
+            background: #8B4513;
+            border-radius: 10px;
+            z-index: 1;
+        }
+
+        .camera {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: #4834d4;
+            border-radius: 10px;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s, background-color 0.3s;
+            z-index: 3;
+            touch-action: none;
+        }
+        
+        .camera .shot-label {
+            position: absolute;
+            bottom: -20px;
+            font-size: 12px;
+            background: rgba(0,0,0,0.5);
+            padding: 2px 5px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        .camera:hover {
+            transform: scale(1.1);
+        }
+
+        .camera.dragging {
+            opacity: 0.7;
+            z-index: 4;
+        }
+
+        .camera.correct {
+            background: #26de81;
+            animation: correct 0.5s;
+        }
+
+        .camera.incorrect {
+            background: #ff4757;
+            animation: shake 0.5s;
+        }
+
+        @keyframes correct {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            min-height: 60px;
+        }
+
+        .question {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .button {
+            background: #ffd700;
+            color: #333;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .game-over {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .game-over h2 {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+
+        .game-over.show {
+            display: block;
+        }
+
+        .score-display {
+            font-size: 2em;
+            margin: 20px 0;
+        }
+
+        .actor.highlight {
+            border-color: #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 180° Rule Challenge</h1>
+        </div>
+
+        <div class="stats">
+            <div class="stat">Level: <span id="level">1</span></div>
+            <div class="stat">Score: <span id="score">0</span></div>
+            <div class="stat timer" id="timer">60</div>
+        </div>
+
+        <div class="instructions">
+            <div class="question" id="question"></div>
+            <p id="hint"></p>
+        </div>
+
+        <div class="stage" id="stage"></div>
+
+        <div class="controls">
+            <button class="button" id="checkBtn">Check Setup</button>
+            <button class="button" id="skipBtn">Skip Level</button>
+        </div>
+
+        <div class="game-over" id="gameOver">
+            <h2>Game Over!</h2>
+            <div class="score-display">Final Score: <span id="finalScore">0</span></div>
+            <div class="score-display">Levels Completed: <span id="levelsCompleted">0</span></div>
+            <button class="button" onclick="location.reload()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const stage = document.getElementById('stage');
+        const levelDisplay = document.getElementById('level');
+        const scoreDisplay = document.getElementById('score');
+        const timerDisplay = document.getElementById('timer');
+        const questionDisplay = document.getElementById('question');
+        const hintDisplay = document.getElementById('hint');
+        const checkBtn = document.getElementById('checkBtn');
+        const skipBtn = document.getElementById('skipBtn');
+        const gameOverDiv = document.getElementById('gameOver');
+        const finalScoreDisplay = document.getElementById('finalScore');
+        const levelsCompletedDisplay = document.getElementById('levelsCompleted');
+
+        let level = 1;
+        let score = 0;
+        let timeLeft = 300; // Increased timer for more complex tasks
+        let timerInterval;
+        let cameras = []; 
+        let currentScenario = null;
+        let draggedCamera = null;
+        let offset = { x: 0, y: 0 };
+        
+        // --- NEW: Define distances for shot types ---
+        const shotDistances = {
+            'close-up': { min: 40, max: 120 },
+            'medium': { min: 121, max: 220 },
+            'wide': { min: 221, max: 400 }
+        };
+
+        const scenarios = [
+            {
+                actors: [{ id: 'A', x: 200, y: 250 }, { id: 'B', x: 600, y: 250 }],
+                lineActors: ['A', 'B'],
+                cameraTasks: [
+                    { camId: 'A', target: 'A', shot: 'close-up' },
+                    { camId: 'B', target: 'B', shot: 'close-up' }
+                ],
+                hint: 'Remember: Both cameras on the same side, and close enough for a close-up!'
+            },
+            {
+                actors: [{ id: 'A', x: 400, y: 150 }, { id: 'B', x: 250, y: 350 }, { id: 'C', x: 550, y: 350 }],
+                lineActors: ['A', 'C'],
+                cameraTasks: [
+                    { camId: 'A', target: 'C', shot: 'close-up' },
+                    { camId: 'B', target: 'A', shot: 'wide' }
+                ],
+                hint: 'The line is between A and C. Camera B needs to be far away for the wide shot.'
+            },
+            {
+                actors: [{ id: 'A', x: 300, y: 180 }, { id: 'B', x: 500, y: 180 }, { id: 'C', x: 300, y: 320 }, { id: 'D', x: 500, y: 320 }],
+                lineActors: ['A', 'D'],
+                cameraTasks: [
+                    { camId: 'A', target: 'A', shot: 'medium' },
+                    { camId: 'B', target: 'D', shot: 'medium' }
+                ],
+                table: { x: 320, y: 200, width: 160, height: 100 },
+                hint: 'A medium shot is not too close, not too far.'
+            }
+        ];
+
+        function startTimer() {
+            timeLeft = 300;
+            timerDisplay.textContent = timeLeft;
+            timerDisplay.classList.remove('warning');
+            
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = timeLeft;
+                if (timeLeft <= 10) timerDisplay.classList.add('warning');
+                if (timeLeft <= 0) endGame();
+            }, 1000);
+        }
+
+        function createLevel() {
+            stage.innerHTML = '';
+            cameras = [];
+            currentScenario = scenarios[Math.min(level - 1, scenarios.length - 1)];
+            
+            // --- NEW: Dynamic question generation ---
+            let questionText = "Set up your cameras: <br>";
+            currentScenario.cameraTasks.forEach(task => {
+                questionText += `• Cam ${task.camId}: <strong>${task.shot}</strong> on Actor <strong>${task.target}</strong> <br>`;
+            });
+            questionDisplay.innerHTML = questionText;
+            hintDisplay.textContent = currentScenario.hint;
+
+            if (currentScenario.table) {
+                const table = document.createElement('div');
+                table.className = 'table';
+                table.style.left = currentScenario.table.x + 'px';
+                table.style.top = currentScenario.table.y + 'px';
+                table.style.width = currentScenario.table.width + 'px';
+                table.style.height = currentScenario.table.height + 'px';
+                stage.appendChild(table);
+            }
+
+            const actor1 = currentScenario.actors.find(a => a.id === currentScenario.lineActors[0]);
+            const actor2 = currentScenario.actors.find(a => a.id === currentScenario.lineActors[1]);
+
+            const line = document.createElement('div');
+            line.className = 'line-180';
+            const dx = actor2.x - actor1.x;
+            const dy = actor2.y - actor1.y;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            
+            line.style.width = length + 'px';
+            line.style.left = actor1.x + 'px';
+            line.style.top = actor1.y + 'px';
+            line.style.transform = `rotate(${angle}deg)`;
+            stage.appendChild(line);
+
+            currentScenario.line = { x1: actor1.x, y1: actor1.y, x2: actor2.x, y2: actor2.y };
+
+            currentScenario.actors.forEach(actorData => {
+                const actor = document.createElement('div');
+                actor.className = 'actor';
+                if (currentScenario.lineActors.includes(actorData.id)) {
+                    actor.classList.add('highlight');
+                }
+                actor.textContent = actorData.id;
+                actor.style.left = (actorData.x - 30) + 'px';
+                actor.style.top = (actorData.y - 30) + 'px';
+                stage.appendChild(actor);
+            });
+
+            // --- MODIFIED: Create cameras with random spawn and labels ---
+            const stageRect = stage.getBoundingClientRect();
+            currentScenario.cameraTasks.forEach(task => {
+                const camera = document.createElement('div');
+                camera.className = 'camera';
+                camera.innerHTML = `📹 ${task.camId} <span class="shot-label">${task.shot} on ${task.target}</span>`;
+                
+                // Random starting position
+                camera.style.left = Math.random() * (stageRect.width - 60) + 'px';
+                camera.style.top = Math.random() * (stageRect.height - 60) + 'px';
+                
+                camera.addEventListener('mousedown', startDrag);
+                camera.addEventListener('touchstart', startDrag);
+                
+                stage.appendChild(camera);
+                cameras.push({element: camera, task: task});
+            });
+
+            startTimer();
+        }
+
+        function startDrag(e) {
+            e.preventDefault();
+            draggedCamera = e.target.closest('.camera');
+            draggedCamera.classList.add('dragging');
+            
+            const rect = draggedCamera.getBoundingClientRect();
+            let clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+            let clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+            
+            offset.x = clientX - rect.left;
+            offset.y = clientY - rect.top;
+
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDrag);
+            document.addEventListener('touchmove', drag);
+            document.addEventListener('touchend', stopDrag);
+        }
+
+        function drag(e) {
+            if (!draggedCamera) return;
+            e.preventDefault();
+            
+            const stageRect = stage.getBoundingClientRect();
+            let clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+            let clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+            
+            let x = clientX - stageRect.left - offset.x;
+            let y = clientY - stageRect.top - offset.y;
+            
+            x = Math.max(0, Math.min(x, stageRect.width - 50));
+            y = Math.max(0, Math.min(y, stageRect.height - 50));
+            
+            draggedCamera.style.left = x + 'px';
+            draggedCamera.style.top = y + 'px';
+        }
+
+        function stopDrag() {
+            if (draggedCamera) {
+                draggedCamera.classList.remove('dragging');
+                draggedCamera = null;
+            }
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', stopDrag);
+            document.removeEventListener('touchmove', drag);
+            document.removeEventListener('touchend', stopDrag);
+        }
+
+        // --- NEW: Fully rewritten check logic with proximity ---
+        function checkPlacement() {
+            const line = currentScenario.line;
+            let allChecksPassed = true;
+            
+            // Part 1: Check 180-degree rule
+            const cameraSides = cameras.map(camObj => {
+                const cam = camObj.element;
+                const camX = parseFloat(cam.style.left) + 25;
+                const camY = parseFloat(cam.style.top) + 25;
+                const sideValue = (camX - line.x1) * (line.y2 - line.y1) - (camY - line.y1) * (line.x2 - line.x1);
+                return Math.sign(sideValue);
+            });
+            
+            const firstSide = cameraSides[0];
+            const allOnSameSide = cameraSides.every(side => side === firstSide && side !== 0);
+
+            if (!allOnSameSide) {
+                allChecksPassed = false;
+            }
+            
+            // Part 2: Check proximity for each camera's task
+            cameras.forEach(camObj => {
+                const cam = camObj.element;
+                const task = camObj.task;
+                const targetActor = currentScenario.actors.find(a => a.id === task.target);
+                const distReqs = shotDistances[task.shot];
+
+                const camX = parseFloat(cam.style.left) + 25;
+                const camY = parseFloat(cam.style.top) + 25;
+
+                const distance = Math.sqrt(Math.pow(camX - targetActor.x, 2) + Math.pow(camY - targetActor.y, 2));
+
+                const proximityOK = distance >= distReqs.min && distance <= distReqs.max;
+                
+                if (!proximityOK) {
+                   allChecksPassed = false;
+                   cam.classList.add('incorrect'); // Show error on specific camera
+                }
+            });
+
+            // Final Result
+            if (allChecksPassed) {
+                cameras.forEach(c => c.element.classList.add('correct'));
+                setTimeout(() => {
+                    score += timeLeft * 10;
+                    scoreDisplay.textContent = score;
+                    level++;
+                    levelDisplay.textContent = level;
+                    if (level > scenarios.length) winGame();
+                    else createLevel();
+                }, 1000);
+            } else {
+                // If the 180 rule was broken, all are incorrect. Otherwise, only proximity-failed cams shake.
+                if (!allOnSameSide) {
+                    cameras.forEach(c => c.element.classList.add('incorrect'));
+                }
+                setTimeout(() => {
+                    cameras.forEach(c => c.element.classList.remove('incorrect'));
+                }, 1000);
+            }
+        }
+
+        function skipLevel() {
+            level++;
+            levelDisplay.textContent = level;
+            if (level > scenarios.length) winGame();
+            else createLevel();
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            stage.style.display = 'none';
+            document.querySelector('.controls').style.display = 'none';
+            document.querySelector('.instructions').style.display = 'none';
+            gameOverDiv.classList.add('show');
+            finalScoreDisplay.textContent = score;
+            levelsCompletedDisplay.textContent = level - 1;
+        }
+
+        function winGame() {
+            clearInterval(timerInterval);
+            stage.style.display = 'none';
+            document.querySelector('.controls').style.display = 'none';
+            document.querySelector('.instructions').style.display = 'none';
+            gameOverDiv.classList.add('show');
+            gameOverDiv.querySelector('h2').textContent = '🎉 You Win! 🎉';
+            finalScoreDisplay.textContent = score;
+            levelsCompletedDisplay.textContent = scenarios.length;
+        }
+
+        checkBtn.addEventListener('click', checkPlacement);
+        skipBtn.addEventListener('click', skipLevel);
+
+        createLevel();
+    </script>
+</body>
+</html>
