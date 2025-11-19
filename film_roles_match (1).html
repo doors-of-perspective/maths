@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Film Roles Matching Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            color: #f39c12;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .instructions {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+            color: #ecf0f1;
+        }
+
+        .game-board {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .column {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            flex: 1;
+        }
+
+        .column h2 {
+            margin-bottom: 20px;
+            color: #f39c12;
+            text-align: center;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+            user-select: none;
+        }
+
+        .card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(243, 156, 18, 0.3);
+        }
+
+        .card.selected {
+            border-color: #f39c12;
+            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+            transform: scale(1.05);
+        }
+
+        .card.matched {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            border-color: #2ecc71;
+            cursor: default;
+            opacity: 0.7;
+        }
+
+        .card.matched:hover {
+            transform: none;
+        }
+
+        .role-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+
+        .definition {
+            font-size: 0.95em;
+            line-height: 1.4;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+        }
+
+        .stat {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 30px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat span {
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        .reset-btn {
+            display: block;
+            margin: 0 auto;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .reset-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .reflection-section {
+            display: none;
+            max-width: 800px;
+            margin: 30px auto;
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 2px solid #f39c12;
+        }
+
+        .reflection-section.show {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .reflection-section h2 {
+            color: #f39c12;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.8em;
+        }
+
+        .reflection-question {
+            margin-bottom: 25px;
+        }
+
+        .reflection-question label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+            color: #ecf0f1;
+            font-weight: bold;
+        }
+
+        .reflection-question textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #34495e;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 1em;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        .reflection-question textarea:focus {
+            outline: none;
+            border-color: #f39c12;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .reflection-question textarea::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .message {
+            text-align: center;
+            font-size: 1.3em;
+            margin: 20px 0;
+            min-height: 30px;
+            color: #2ecc71;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .game-board {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Film Job Roles Matching Game</h1>
+        <p class="instructions">Match each film role with its correct definition. Click a role, then click its matching definition!</p>
+        
+        <div class="stats">
+            <div class="stat">Matches: <span id="matches">0</span> / <span id="total">10</span></div>
+            <div class="stat">Attempts: <span id="attempts">0</span></div>
+        </div>
+
+        <div class="message" id="message"></div>
+
+        <div class="game-board">
+            <div class="column">
+                <h2>Job Roles</h2>
+                <div id="roles"></div>
+            </div>
+            <div class="column">
+                <h2>Definitions</h2>
+                <div id="definitions"></div>
+            </div>
+        </div>
+
+        <button class="reset-btn" onclick="resetGame()">Reset Game</button>
+
+        <div class="reflection-section" id="reflection">
+            <h2>🎯 Your Film Career Path</h2>
+            <div class="reflection-question">
+                <label for="desired-role">Which film role interests you the most and why?</label>
+                <textarea id="desired-role" placeholder="Think about what aspects of filmmaking excite you most..."></textarea>
+            </div>
+            <div class="reflection-question">
+                <label for="action-plan">How are you going to work towards this role? What steps will you take?</label>
+                <textarea id="action-plan" placeholder="Consider skills to develop, courses to take, experience to gain, people to connect with..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const filmRoles = [
+            { id: 1, role: "Director", definition: "Oversees the creative vision of the film and directs actors and crew to bring the script to life." },
+            { id: 2, role: "Director of Photography", definition: "Manages camera and lighting crews to create the visual look and feel of the film." },
+            { id: 3, role: "Producer", definition: "Manages the business and financial aspects of the film, from development through distribution." },
+            { id: 4, role: "Sound Designer", definition: "Creates and manipulates audio elements including sound effects, ambience, and audio atmosphere." },
+            { id: 5, role: "Production Designer", definition: "Creates the overall visual appearance of the film including sets, locations, props, and color palette." },
+            { id: 6, role: "Editor", definition: "Assembles raw footage into a cohesive narrative, controlling pacing and storytelling flow." },
+            { id: 7, role: "Gaffer", definition: "Head electrician responsible for lighting design and execution on set." },
+            { id: 8, role: "Script Supervisor", definition: "Tracks continuity details and ensures consistency between shots and scenes." },
+            { id: 9, role: "Boom Operator", definition: "Positions and operates the microphone to capture high-quality dialogue and sound during filming." },
+            { id: 10, role: "Costume Designer", definition: "Designs and selects clothing and accessories to enhance characters and support the story." }
+        ];
+
+        let selectedRole = null;
+        let selectedDef = null;
+        let matchedPairs = [];
+        let attempts = 0;
+
+        function shuffle(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function initGame() {
+            const rolesContainer = document.getElementById('roles');
+            const defsContainer = document.getElementById('definitions');
+            
+            const shuffledRoles = shuffle(filmRoles);
+            const shuffledDefs = shuffle(filmRoles);
+
+            rolesContainer.innerHTML = '';
+            defsContainer.innerHTML = '';
+
+            shuffledRoles.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card role-card';
+                card.dataset.id = item.id;
+                card.innerHTML = `<div class="role-title">${item.role}</div>`;
+                card.onclick = () => selectRole(card, item.id);
+                rolesContainer.appendChild(card);
+            });
+
+            shuffledDefs.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card def-card';
+                card.dataset.id = item.id;
+                card.innerHTML = `<div class="definition">${item.definition}</div>`;
+                card.onclick = () => selectDefinition(card, item.id);
+                defsContainer.appendChild(card);
+            });
+
+            updateStats();
+        }
+
+        function selectRole(card, id) {
+            if (matchedPairs.includes(id)) return;
+            
+            document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedRole = id;
+            
+            checkMatch();
+        }
+
+        function selectDefinition(card, id) {
+            if (matchedPairs.includes(id)) return;
+            
+            document.querySelectorAll('.def-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedDef = id;
+            
+            checkMatch();
+        }
+
+        function checkMatch() {
+            if (selectedRole !== null && selectedDef !== null) {
+                attempts++;
+                
+                if (selectedRole === selectedDef) {
+                    matchedPairs.push(selectedRole);
+                    
+                    document.querySelector(`.role-card[data-id="${selectedRole}"]`).classList.add('matched');
+                    document.querySelector(`.def-card[data-id="${selectedDef}"]`).classList.add('matched');
+                    
+                    showMessage('✓ Correct Match!');
+                    
+                    if (matchedPairs.length === filmRoles.length) {
+                        setTimeout(() => {
+                            showMessage(`🎉 Congratulations! You matched all roles in ${attempts} attempts!`);
+                            document.getElementById('reflection').classList.add('show');
+                        }, 500);
+                    }
+                } else {
+                    showMessage('✗ Try again!');
+                    setTimeout(() => {
+                        document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+                    }, 1000);
+                }
+                
+                selectedRole = null;
+                selectedDef = null;
+                updateStats();
+            }
+        }
+
+        function showMessage(text) {
+            const msg = document.getElementById('message');
+            msg.textContent = text;
+            setTimeout(() => {
+                if (matchedPairs.length < filmRoles.length) {
+                    msg.textContent = '';
+                }
+            }, 2000);
+        }
+
+        function updateStats() {
+            document.getElementById('matches').textContent = matchedPairs.length;
+            document.getElementById('total').textContent = filmRoles.length;
+            document.getElementById('attempts').textContent = attempts;
+        }
+
+        function resetGame() {
+            selectedRole = null;
+            selectedDef = null;
+            matchedPairs = [];
+            attempts = 0;
+            document.getElementById('message').textContent = '';
+            document.getElementById('reflection').classList.remove('show');
+            document.getElementById('desired-role').value = '';
+            document.getElementById('action-plan').value = '';
+            initGame();
+        }
+
+        initGame();
+    </script>
+</body>
+</html>
