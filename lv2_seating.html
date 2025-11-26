@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seating Plan Generator</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function SeatingPlan() {
+            const [names, setNames] = useState('');
+            const [savedNames, setSavedNames] = useState([]);
+            const [seating, setSeating] = useState(null);
+            const [error, setError] = useState('');
+            const [middleSeats, setMiddleSeats] = useState(4);
+
+            // CHANGED: Uses browser localStorage instead of window.storage
+            useEffect(() => {
+                const saved = localStorage.getItem('seating-names');
+                if (saved) {
+                    try {
+                        const parsed = JSON.parse(saved);
+                        setSavedNames(parsed);
+                        setNames(parsed.join('\n'));
+                    } catch(e) { console.error(e); }
+                }
+            }, []);
+
+            const saveNames = () => {
+                const nameList = names.split('\n').map(n => n.trim()).filter(n => n);
+                setSavedNames(nameList);
+                try {
+                    localStorage.setItem('seating-names', JSON.stringify(nameList));
+                    setError('');
+                } catch (e) {
+                    setError('Could not save names');
+                }
+            };
+
+            const shuffle = (arr) => {
+                const a = [...arr];
+                for (let i = a.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [a[i], a[j]] = [a[j], a[i]];
+                }
+                return a;
+            };
+
+            const generate = () => {
+                const nameList = names.split('\n').map(n => n.trim()).filter(n => n);
+                if (nameList.length === 0) {
+                    setError('Please enter some names');
+                    return;
+                }
+                const totalSeats = 7 + middleSeats * 2 + 7;
+                if (nameList.length > totalSeats) {
+                    setError(`Maximum ${totalSeats} seats available`);
+                    return;
+                }
+                setError('');
+                
+                // 1. Identify all special students including Brooklyn
+                const findStudent = (keywords) => {
+                    const index = nameList.findIndex(name => 
+                        keywords.some(k => name.toLowerCase().includes(k.toLowerCase()))
+                    );
+                    return index !== -1 ? { name: nameList[index], index } : null;
+                };
+                
+                const mariia = findStudent(['mariia']);
+                const eden = findStudent(['eden']);
+                const courtney = findStudent(['courtney']);
+                const zach = findStudent(['zach', 'zac']);
+                const jake = findStudent(['jake']);
+                const sam = findStudent(['sam']);
+                const dre = findStudent(['dre']);
+                const calum = findStudent(['calum']);
+                const marquez = findStudent(['marquez']);
+                const brooklyn = findStudent(['brooklyn']); 
+                
+                // 2. Remove special students from the random pool
+                let remainingNames = [...nameList];
+                const specialStudents = [mariia, eden, courtney, zach, jake, sam, dre, calum, marquez, brooklyn]
+                    .filter(s => s !== null)
+                    .sort((a, b) => b.index - a.index); 
+                
+                for (const student of specialStudents) {
+                    remainingNames.splice(student.index, 1);
+                }
+                
+                // 3. Initialize Layout
+                const left = Array(7).fill(null);
+                const middleLeft = Array(middleSeats).fill(null);
+                const middleRight = Array(middleSeats).fill(null);
+                const right = Array(7).fill(null);
+
+                const fillRandomSpot = (table, name) => {
+                    if (!name) return;
+                    const emptyIndices = table.map((n, i) => n === null ? i : -1).filter(i => i !== -1);
+                    if (emptyIndices.length > 0) {
+                        const idx = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+                        table[idx] = name.name;
+                    }
+                };
+
+                // 4. Place Fixed/Priority People FIRST
+
+                // Mariia: Bottom Right
+                if (mariia) right[6] = mariia.name;
+
+                // Eden & Courtney: Middle Left (Top)
+                if (eden && courtney) {
+                    middleLeft[0] = eden.name;
+                    middleLeft[1] = courtney.name;
+                } else if (eden) {
+                    middleLeft[0] = eden.name;
+                } else if (courtney) {
+                    middleLeft[0] = courtney.name;
+                }
+
+                // Zach: Random Left
+                if (zach) fillRandomSpot(left, zach);
+
+                // Jake: Random Right
+                if (jake) fillRandomSpot(right, jake);
+
+                // Sam, Dre, Calum
+                const trio = [sam, dre, calum].filter(s => s);
+                const tablesForTrio = [middleRight, left, right];
+                
+                trio.forEach((person, i) => {
+                    let placed = false;
+                    const preferredTable = tablesForTrio[i % tablesForTrio.length];
+                    const emptyIndices = preferredTable.map((n, idx) => n === null ? idx : -1).filter(idx => idx !== -1);
+                    
+                    if (emptyIndices.length > 0) {
+                        const idx = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+                        preferredTable[idx] = person.name;
+                        placed = true;
+                    }
+
+                    if (!placed) {
+                        if (middleRight.includes(null)) fillRandomSpot(middleRight, person);
+                        else if (left.includes(null)) fillRandomSpot(left, person);
+                        else if (right.includes(null)) fillRandomSpot(right, person);
+                        else if (middleLeft.includes(null)) fillRandomSpot(middleLeft, person);
+                    }
+                });
+
+                // Brooklyn
+                if (brooklyn) {
+                    const availableTables = [left, middleLeft, middleRight, right].filter(t => t.some(s => s === null));
+                    if (availableTables.length > 0) {
+                        const randomTable = availableTables[Math.floor(Math.random() * availableTables.length)];
+                        fillRandomSpot(randomTable, brooklyn);
+                    }
+                }
+
+                // 5. Place Marquez (The Safety Check)
+                if (marquez) {
+                    const bannedKeywords = ['eden', 'zach', 'zac', 'brooklyn', 'sam', 'dre'];
+                    
+                    const isBanned = (name) => {
+                        if (!name) return false;
+                        return bannedKeywords.some(k => name.toLowerCase().includes(k));
+                    };
+
+                    const isSeatSafeForMarquez = (tableArr, tableType, index) => {
+                        // Check Vertical
+                        const up = index > 0 ? tableArr[index - 1] : null;
+                        const down = index < tableArr.length - 1 ? tableArr[index + 1] : null;
+                        if (isBanned(up) || isBanned(down)) return false;
+
+                        // Check Behind/Across
+                        let adjacentName = null;
+                        
+                        if (tableType === 'left') {
+                            if (index < middleLeft.length) adjacentName = middleLeft[index];
+                        } else if (tableType === 'middleLeft') {
+                            if (index < left.length) if (isBanned(left[index])) return false; 
+                            adjacentName = middleRight[index]; 
+                        } else if (tableType === 'middleRight') {
+                            adjacentName = middleLeft[index]; 
+                            if (index < right.length) if (isBanned(right[index])) return false;
+                        } else if (tableType === 'right') {
+                            if (index < middleRight.length) adjacentName = middleRight[index];
+                        }
+
+                        if (isBanned(adjacentName)) return false;
+
+                        return true;
+                    };
+
+                    let safeSeats = [];
+                    left.forEach((s, i) => { if(!s && isSeatSafeForMarquez(left, 'left', i)) safeSeats.push({t: left, i}) });
+                    middleLeft.forEach((s, i) => { if(!s && isSeatSafeForMarquez(middleLeft, 'middleLeft', i)) safeSeats.push({t: middleLeft, i}) });
+                    middleRight.forEach((s, i) => { if(!s && isSeatSafeForMarquez(middleRight, 'middleRight', i)) safeSeats.push({t: middleRight, i}) });
+                    right.forEach((s, i) => { if(!s && isSeatSafeForMarquez(right, 'right', i)) safeSeats.push({t: right, i}) });
+
+                    if (safeSeats.length > 0) {
+                        const seat = safeSeats[Math.floor(Math.random() * safeSeats.length)];
+                        seat.t[seat.i] = marquez.name;
+                    } else {
+                        if (right.includes(null)) fillRandomSpot(right, marquez);
+                        else if (left.includes(null)) fillRandomSpot(left, marquez);
+                        else {
+                            const anyTable = [middleRight, middleLeft].find(t => t.includes(null));
+                            if (anyTable) fillRandomSpot(anyTable, marquez);
+                        }
+                    }
+                }
+                
+                // 6. Fill remaining
+                const shuffled = shuffle(remainingNames);
+                let shuffledIndex = 0;
+
+                [left, middleLeft, middleRight, right].forEach(table => {
+                    for (let i = 0; i < table.length; i++) {
+                        if (!table[i] && shuffledIndex < shuffled.length) {
+                            table[i] = shuffled[shuffledIndex++];
+                        }
+                    }
+                });
+                
+                setSeating({ left, middleLeft, middleRight, right });
+            };
+
+            const Seat = ({ name }) => {
+                const checkSpecial = (n) => {
+                    if (!n) return false;
+                    const lower = n.toLowerCase();
+                    return lower.includes('mariia') || lower.includes('eden') || 
+                            lower.includes('courtney') || lower.includes('zach') || 
+                            lower.includes('zac') || lower.includes('jake') ||
+                            lower.includes('sam') || lower.includes('dre') || 
+                            lower.includes('calum') || lower.includes('marquez') ||
+                            lower.includes('brooklyn');
+                };
+                
+                return (
+                    <div className={`w-20 h-10 flex items-center justify-center text-xs font-medium rounded border-2 ${
+                        checkSpecial(name) ? 'bg-purple-100 border-purple-400 text-purple-800' :
+                        name ? 'bg-blue-100 border-blue-400 text-blue-800' : 'bg-gray-100 border-gray-300 text-gray-400'
+                    }`}>
+                        {name || '—'}
+                    </div>
+                );
+            };
+
+            return (
+                <div className="p-4 min-h-screen">
+                    <h1 className="text-xl font-bold text-center mb-4">Seating Plan Generator</h1>
+                    
+                    <div className="max-w-md mx-auto mb-4">
+                        <label className="block text-sm font-medium mb-1">Names (one per line, max {7 + middleSeats * 2 + 7})</label>
+                        <textarea
+                            value={names}
+                            onChange={(e) => setNames(e.target.value)}
+                            placeholder="Paste or type names here..."
+                            className="w-full h-40 p-2 border rounded text-sm font-mono"
+                        />
+                        <div className="flex gap-2 mt-2 items-center">
+                            <button onClick={saveNames} className="px-3 py-1.5 bg-green-600 text-white rounded text-sm hover:bg-green-700">
+                                Save Names
+                            </button>
+                            <button onClick={generate} className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">
+                                Generate Plan
+                            </button>
+                            <div className="flex items-center gap-1 ml-auto">
+                                <label className="text-xs">Middle seats:</label>
+                                <button onClick={() => setMiddleSeats(Math.max(3, middleSeats - 1))} className="px-2 py-1 bg-gray-300 rounded text-xs hover:bg-gray-400">-</button>
+                                <span className="px-2 text-sm font-medium">{middleSeats}</span>
+                                <button onClick={() => setMiddleSeats(Math.min(6, middleSeats + 1))} className="px-2 py-1 bg-gray-300 rounded text-xs hover:bg-gray-400">+</button>
+                            </div>
+                        </div>
+                        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+                        {savedNames.length > 0 && <p className="text-green-600 text-sm mt-1">✓ {savedNames.length} names saved</p>}
+                    </div>
+
+                    {seating && (
+                        <div className="mt-6">
+                            <h2 className="text-center font-semibold mb-4">Room Layout</h2>
+                            <div className="flex justify-center gap-4 overflow-x-auto pb-4">
+                                <div className="flex flex-col items-center">
+                                    <div className="text-xs text-gray-500 mb-1">Left Wall</div>
+                                    <div className="bg-amber-200 border-2 border-amber-400 rounded p-2 flex flex-col gap-1">
+                                        {[...Array(7)].map((_, i) => (
+                                            <Seat key={`l${i}`} name={seating.left[i]} />
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col items-center">
+                                    <div className="text-xs text-gray-500 mb-1">Middle Table</div>
+                                    <div className="bg-amber-200 border-2 border-amber-400 rounded p-2 flex gap-2">
+                                        <div className="flex flex-col gap-1">
+                                            {[...Array(middleSeats)].map((_, i) => (
+                                                <Seat key={`ml${i}`} name={seating.middleLeft[i]} />
+                                            ))}
+                                        </div>
+                                        <div className="w-8 bg-amber-300 rounded"></div>
+                                        <div className="flex flex-col gap-1">
+                                            {[...Array(middleSeats)].map((_, i) => (
+                                                <Seat key={`mr${i}`} name={seating.middleRight[i]} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col items-center">
+                                    <div className="text-xs text-gray-500 mb-1">Right Wall</div>
+                                    <div className="bg-amber-200 border-2 border-amber-400 rounded p-2 flex flex-col gap-1">
+                                        {[...Array(7)].map((_, i) => (
+                                            <Seat key={`r${i}`} name={seating.right[i]} />
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<SeatingPlan />);
+    </script>
+</body>
+</html>
