@@ -3,661 +3,522 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premiere Pro Shortcuts Quiz - Level 3</title>
+    <title>Premiere Pro Interactive Quiz</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --pr-purple: #DDBBFF;
+            --pr-bg: #1e1e1e;
+            --pr-panel: #2d2d2d;
+            --key-bg: #444;
+            --key-active: #9999FF;
+            --key-active-text: #000;
+            --text: #ffffff;
+            --success: #4caf50;
+            --error: #f44336;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            background-color: var(--pr-bg);
+            color: var(--text);
+            max-width: 900px;
+            margin: 0 auto;
             padding: 20px;
         }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
+        h1, h2 {
+            color: var(--pr-purple);
+            border-bottom: 2px solid var(--pr-purple);
+            padding-bottom: 10px;
         }
 
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            opacity: 0.9;
-            font-size: 1.1em;
-        }
-
-        .progress-bar {
-            height: 8px;
-            background: #e0e0e0;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            transition: width 0.3s ease;
-        }
-
-        .content {
-            padding: 40px;
-        }
-
-        .level-badge {
-            display: inline-block;
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.9em;
+        .level-container {
+            background-color: var(--pr-panel);
+            padding: 20px;
+            border-radius: 8px;
             margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            border: 1px solid #444;
         }
 
-        .level-essential {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .level-intermediate {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .level-advanced {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .question-number {
-            color: #666;
-            font-size: 0.9em;
-            margin-bottom: 20px;
-        }
-
-        .question {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 30px;
-        }
-
-        .options {
+        .question-block {
+            margin-bottom: 25px;
+            padding: 15px;
+            background-color: #383838;
+            border-radius: 8px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 10px;
         }
 
-        .option {
-            padding: 20px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Courier New', monospace;
-            font-size: 1.1em;
-            background: white;
-        }
-
-        .option:hover:not(.disabled) {
-            border-color: #667eea;
-            background: #f5f7ff;
-            transform: translateX(5px);
-        }
-
-        .option.selected {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-
-        .option.correct {
-            background: #10b981;
-            color: white;
-            border-color: #10b981;
-        }
-
-        .option.incorrect {
-            background: #ef4444;
-            color: white;
-            border-color: #ef4444;
-        }
-
-        .option.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .next-btn {
-            margin-top: 30px;
-            padding: 15px 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1em;
+        .question-label {
             font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+            color: #eee;
+        }
+
+        /* KEYBOARD UI STYLES */
+        .shortcut-interface {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            background: #222;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #555;
+        }
+
+        .mod-btn {
+            background-color: var(--key-bg);
+            color: white;
+            border: 1px solid #666;
+            border-radius: 4px;
+            padding: 8px 15px;
             cursor: pointer;
-            transition: transform 0.2s;
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
+            font-family: monospace;
+            font-size: 14px;
+            user-select: none;
+            transition: all 0.2s;
+            box-shadow: 0 2px 0 #000;
         }
 
-        .next-btn:hover:not(:disabled) {
-            transform: scale(1.05);
+        .mod-btn:active {
+            box-shadow: 0 1px 0 #000;
+            transform: translateY(1px);
         }
 
-        .next-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: scale(1);
+        /* Active State (When clicked) */
+        .mod-btn.active {
+            background-color: var(--key-active);
+            color: var(--key-active-text);
+            border-color: var(--key-active);
+            font-weight: bold;
         }
 
-        .score-display {
+        .plus-sign {
+            color: #888;
+            font-weight: bold;
+        }
+
+        .key-input {
+            width: 60px;
+            padding: 8px;
             text-align: center;
-            margin-top: 30px;
-            padding-top: 30px;
-            border-top: 2px solid #e0e0e0;
-            font-size: 1.2em;
-            color: #666;
+            font-size: 18px;
+            font-family: monospace;
+            text-transform: uppercase;
+            background-color: #111;
+            border: 1px solid #666;
+            color: white;
+            border-radius: 4px;
         }
 
-        .score-number {
-            font-size: 1.5em;
+        .key-input:focus {
+            outline: 2px solid var(--pr-purple);
+            border-color: transparent;
+        }
+
+        /* Multiple Choice Styles */
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .radio-group label {
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        .radio-group label:hover {
+            background-color: #444;
+        }
+
+        /* Actions */
+        .action-btn {
+            background-color: var(--pr-purple);
+            color: #000;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 4px;
+            font-size: 18px;
+            cursor: pointer;
             font-weight: bold;
-            color: #667eea;
+            transition: background 0.3s;
+            width: 100%;
+            margin-top: 10px;
         }
 
-        .results {
+        .action-btn:hover {
+            background-color: #aaddff;
+        }
+
+        #level-2 {
+            display: none;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+
+        .feedback {
+            margin-top: 15px;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        
+        .locked-message {
             text-align: center;
             padding: 40px;
+            font-style: italic;
+            color: #888;
+            border: 2px dashed #444;
+            border-radius: 8px;
         }
 
-        .results h2 {
-            font-size: 2.5em;
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        .final-score {
-            font-size: 4em;
-            font-weight: bold;
-            color: #667eea;
-            margin: 20px 0;
-        }
-
-        .message {
-            font-size: 1.3em;
-            color: #666;
-            margin-bottom: 30px;
-        }
-
-        .retry-btn {
-            padding: 15px 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .retry-btn:hover {
-            transform: scale(1.05);
-        }
-
-        .level-complete {
-            background: #dcfce7;
-            border: 2px solid #10b981;
-            border-radius: 15px;
-            padding: 30px;
-            margin: 30px 0;
-            text-align: center;
-        }
-
-        .level-complete h3 {
-            color: #166534;
-            font-size: 2em;
-            margin-bottom: 15px;
-        }
-
-        .level-complete p {
-            color: #166534;
-            font-size: 1.2em;
-            margin-bottom: 20px;
-        }
-
-        .icon {
-            font-size: 3em;
-            margin-bottom: 15px;
-        }
-
-        .breakdown {
-            background: #f5f5f5;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-
-        .breakdown h3 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-
-        .breakdown-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .breakdown-item:last-child {
-            border-bottom: none;
-        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Premiere Pro Shortcuts Quiz</h1>
-            <p>Level 3 Student Edition</p>
+
+    <h1>Premiere Pro Certification</h1>
+
+    <div id="level-1" class="level-container">
+        <h2>Level 1: The Essentials</h2>
+        <p>Select the modifier keys (Ctrl/Shift/Alt) and type the letter to create the shortcut.</p>
+        <p><em>(Note: "Ctrl" also counts as "Cmd" for Mac users)</em></p>
+
+        <div class="question-block" id="q1_wrapper">
+            <div class="question-label">1. Select Tool</div>
+            <div class="shortcut-interface">
+                <button class="mod-btn" onclick="toggleBtn(this)">Ctrl/Cmd</button>
+                <span class="plus-sign">+</span>
+                <button class="mod-btn" onclick="toggleBtn(this)">Alt/Opt</button>
+                <span class="plus-sign">+</span>
+                <button class="mod-btn" onclick="toggleBtn(this)">Shift</button>
+                <span class="plus-sign">+</span>
+                <input type="text" maxlength="1" class="key-input" id="a1_key">
+            </div>
         </div>
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressBar"></div>
+
+        <div class="question-block" id="q2_wrapper">
+            <div class="question-label">2. Cut (Add Edit)</div>
+            <div class="shortcut-interface">
+                <button class="mod-btn" onclick="toggleBtn(this)">Ctrl/Cmd</button>
+                <span class="plus-sign">+</span>
+                <button class="mod-btn" onclick="toggleBtn(this)">Alt/Opt</button>
+                <span class="plus-sign">+</span>
+                <button class="mod-btn" onclick="toggleBtn(this)">Shift</button>
+                <span class="plus-sign">+</span>
+                <input type="text" maxlength="1" class="key-input" id="a2_key">
+            </div>
         </div>
-        <div class="content" id="content"></div>
+
+        <div class="question-block" id="q3_wrapper">
+            <div class="question-label">3. Cut Through (Add Edit to All Tracks)</div>
+            <div class="shortcut-interface">
+                <button class="mod-btn" onclick="toggleBtn(this)">Ctrl/Cmd</button>
+                <span class="plus-sign">+</span>
+                <button class="mod-btn" onclick="toggleBtn(this)">Alt/Opt</button>
+                <span class="plus-sign">+</span>
+                <button class="mod-btn" onclick="toggleBtn(this)">Shift</button>
+                <span class="plus-sign">+</span>
+                <input type="text" maxlength="1" class="key-input" id="a3_key">
+            </div>
+        </div>
+
+        <div class="question-block" id="q4_wrapper">
+            <div class="question-label">4. Copy</div>
+            <div class="shortcut-interface">
+                <button class="mod-btn" onclick="toggleBtn(this)">Ctrl/Cmd</button>
+                <span class="plus-sign">+</span>
+                <button class="mod-btn" onclick="toggleBtn(this)">Alt/Opt</button>
+                <span class="plus-sign">+</span>
+                <button class="mod-btn" onclick="toggleBtn(this)">Shift</button>
+                <span class="plus-sign">+</span>
+                <input type="text" maxlength="1" class="key-input" id="a4_key">
+            </div>
+        </div>
+
+        <div class="question-block" id="q5_wrapper">
+            <div class="question-label">5. Paste</div>
+            <div class="shortcut-interface">
+                <button class="mod-btn" onclick="toggleBtn(this)">Ctrl/Cmd</button>
+                <span class="plus-sign">+</span>
+                <button class="mod-btn" onclick="toggleBtn(this)">Alt/Opt</button>
+                <span class="plus-sign">+</span>
+                <button class="mod-btn" onclick="toggleBtn(this)">Shift</button>
+                <span class="plus-sign">+</span>
+                <input type="text" maxlength="1" class="key-input" id="a5_key">
+            </div>
+        </div>
+
+        <div class="question-block" id="q6_wrapper">
+            <div class="question-label">6. Add Marker</div>
+            <div class="shortcut-interface">
+                <button class="mod-btn" onclick="toggleBtn(this)">Ctrl/Cmd</button>
+                <span class="plus-sign">+</span>
+                <button class="mod-btn" onclick="toggleBtn(this)">Alt/Opt</button>
+                <span class="plus-sign">+</span>
+                <button class="mod-btn" onclick="toggleBtn(this)">Shift</button>
+                <span class="plus-sign">+</span>
+                <input type="text" maxlength="1" class="key-input" id="a6_key">
+            </div>
+        </div>
+
+        <div class="question-block" id="q7_wrapper">
+            <div class="question-label">7. What is a Marker?</div>
+            <div class="radio-group">
+                <label><input type="radio" name="marker_def" value="wrong"> Deletes the footage permanently</label>
+                <label><input type="radio" name="marker_def" value="correct"> A visual tag/note on the timeline</label>
+                <label><input type="radio" name="marker_def" value="wrong"> Exports the video</label>
+            </div>
+        </div>
+
+        <div class="question-block" id="q8_wrapper">
+            <div class="question-label">8. Link / Unlink</div>
+            <div class="shortcut-interface">
+                <button class="mod-btn" onclick="toggleBtn(this)">Ctrl/Cmd</button>
+                <span class="plus-sign">+</span>
+                <button class="mod-btn" onclick="toggleBtn(this)">Alt/Opt</button>
+                <span class="plus-sign">+</span>
+                <button class="mod-btn" onclick="toggleBtn(this)">Shift</button>
+                <span class="plus-sign">+</span>
+                <input type="text" maxlength="1" class="key-input" id="a8_key">
+            </div>
+        </div>
+
+        <div class="question-block" id="q9_wrapper">
+            <div class="question-label">9. What does Link/Unlink do?</div>
+            <div class="radio-group">
+                <label><input type="radio" name="link_def" value="correct"> Groups/Separates video from audio</label>
+                <label><input type="radio" name="link_def" value="wrong"> Connects to the internet</label>
+                <label><input type="radio" name="link_def" value="wrong"> Links clips to After Effects</label>
+            </div>
+        </div>
+
+        <div class="question-block" id="q10_wrapper">
+            <div class="question-label">10. Mark In</div>
+            <div class="shortcut-interface">
+                <button class="mod-btn" onclick="toggleBtn(this)">Ctrl/Cmd</button>
+                <span class="plus-sign">+</span>
+                <button class="mod-btn" onclick="toggleBtn(this)">Alt/Opt</button>
+                <span class="plus-sign">+</span>
+                <button class="mod-btn" onclick="toggleBtn(this)">Shift</button>
+                <span class="plus-sign">+</span>
+                <input type="text" maxlength="1" class="key-input" id="a10_key">
+            </div>
+        </div>
+
+        <div class="question-block" id="q11_wrapper">
+            <div class="question-label">11. Mark Out</div>
+            <div class="shortcut-interface">
+                <button class="mod-btn" onclick="toggleBtn(this)">Ctrl/Cmd</button>
+                <span class="plus-sign">+</span>
+                <button class="mod-btn" onclick="toggleBtn(this)">Alt/Opt</button>
+                <span class="plus-sign">+</span>
+                <button class="mod-btn" onclick="toggleBtn(this)">Shift</button>
+                <span class="plus-sign">+</span>
+                <input type="text" maxlength="1" class="key-input" id="a11_key">
+            </div>
+        </div>
+
+        <div class="question-block" id="q12_wrapper">
+            <div class="question-label">12. Export Media</div>
+            <div class="shortcut-interface">
+                <button class="mod-btn" onclick="toggleBtn(this)">Ctrl/Cmd</button>
+                <span class="plus-sign">+</span>
+                <button class="mod-btn" onclick="toggleBtn(this)">Alt/Opt</button>
+                <span class="plus-sign">+</span>
+                <button class="mod-btn" onclick="toggleBtn(this)">Shift</button>
+                <span class="plus-sign">+</span>
+                <input type="text" maxlength="1" class="key-input" id="a12_key">
+            </div>
+        </div>
+
+        <button class="action-btn" onclick="checkLevel1()">Check Level 1 Answers</button>
+        <div id="result-lvl1" class="feedback"></div>
+    </div>
+
+
+    <div id="locked-msg" class="locked-message">
+        🔒 <strong>Level 2 is locked.</strong><br>You must get 100% on Level 1 to proceed.
+    </div>
+
+    <div id="level-2" class="level-container">
+        <h2>Level 2: Advanced Mastery</h2>
+        
+        <div id="level-2-questions">
+            </div>
+
+        <button class="action-btn" onclick="checkLevel2()">Submit Final Exam</button>
+        <div id="result-lvl2" class="feedback"></div>
     </div>
 
     <script>
-        const questions = [
-            {
-                level: "Essential",
-                question: "What is the keyboard shortcut for the Selection Tool?",
-                options: ["V", "A", "S", "C"],
-                correct: 0
-            },
-            {
-                level: "Essential",
-                question: "What shortcut cuts the clip at the playhead?",
-                options: ["Ctrl + X", "Ctrl + K", "Ctrl + C", "K"],
-                correct: 1
-            },
-            {
-                level: "Essential",
-                question: "What shortcut cuts through ALL tracks at the playhead?",
-                options: ["Ctrl + K", "Ctrl + Shift + K", "Shift + K", "Alt + K"],
-                correct: 1
-            },
-            {
-                level: "Essential",
-                question: "What is the keyboard shortcut to add a Marker?",
-                options: ["M", "K", "N", "Ctrl + M"],
-                correct: 0
-            },
-            {
-                level: "Essential",
-                question: "What is a marker in Premiere Pro?",
-                options: [
-                    "A tool to cut clips",
-                    "A visual reference point to mark important moments in your timeline",
-                    "A way to export your video",
-                    "A tool to add transitions"
-                ],
-                correct: 1
-            },
-            {
-                level: "Essential",
-                question: "What is the keyboard shortcut to Copy?",
-                options: ["Ctrl + C", "Ctrl + V", "Ctrl + X", "Ctrl + P"],
-                correct: 0
-            },
-            {
-                level: "Essential",
-                question: "What is the keyboard shortcut to Paste?",
-                options: ["Ctrl + C", "Ctrl + V", "Ctrl + X", "Ctrl + P"],
-                correct: 1
-            },
-            {
-                level: "Essential",
-                question: "What is the keyboard shortcut to Link/Unlink clips?",
-                options: ["Ctrl + L", "Ctrl + K", "L", "Ctrl + Shift + L"],
-                correct: 0
-            },
-            {
-                level: "Essential",
-                question: "What does the Link tool (Ctrl + L) do?",
-                options: [
-                    "Links your project to the cloud",
-                    "Connects audio and video together so they move as one unit",
-                    "Creates a hyperlink in your video",
-                    "Links multiple projects together"
-                ],
-                correct: 1
-            },
-            {
-                level: "Essential",
-                question: "What is the keyboard shortcut to Mark In?",
-                options: ["I", "O", "M", "Ctrl + I"],
-                correct: 0
-            },
-            {
-                level: "Essential",
-                question: "What is the keyboard shortcut to Mark Out?",
-                options: ["I", "O", "M", "Ctrl + O"],
-                correct: 1
-            },
-            {
-                level: "Essential",
-                question: "What is the keyboard shortcut to Export Media?",
-                options: ["Ctrl + E", "Ctrl + M", "Ctrl + X", "Ctrl + Shift + E"],
-                correct: 1
-            },
-            {
-                level: "Intermediate",
-                question: "Which shortcut creates a new Sequence?",
-                options: ["Ctrl + N", "Ctrl + Shift + N", "Ctrl + Alt + N", "F5"],
-                correct: 0
-            },
-            {
-                level: "Intermediate",
-                question: "What is the shortcut to Undo?",
-                options: ["Ctrl + Y", "Ctrl + Z", "Ctrl + U", "Ctrl + Shift + Z"],
-                correct: 1
-            },
-            {
-                level: "Intermediate",
-                question: "What is the shortcut to Redo?",
-                options: ["Ctrl + Y", "Ctrl + Z", "Ctrl + Shift + Z", "Ctrl + R"],
-                correct: 2
-            },
-            {
-                level: "Intermediate",
-                question: "Which shortcut enables the Ripple Edit Tool?",
-                options: ["R", "B", "T", "E"],
-                correct: 1
-            },
-            {
-                level: "Intermediate",
-                question: "Which shortcut adjusts Audio Gain?",
-                options: ["G", "Shift + G", "Ctrl + G", "Alt + G"],
-                correct: 0
-            },
-            {
-                level: "Intermediate",
-                question: "What is the shortcut to Select All?",
-                options: ["Ctrl + S", "Ctrl + A", "Ctrl + Shift + A", "A"],
-                correct: 1
-            },
-            {
-                level: "Intermediate",
-                question: "How do you Insert a clip at the playhead?",
-                options: [".", ",", "I", "Enter"],
-                correct: 1
-            },
-            {
-                level: "Intermediate",
-                question: "How do you Overwrite a clip at the playhead?",
-                options: [".", ",", "O", "Enter"],
-                correct: 0
-            },
-            {
-                level: "Intermediate",
-                question: "What shortcut toggles Snap in Timeline?",
-                options: ["S", "Shift + S", "Ctrl + S", "Alt + S"],
-                correct: 0
-            },
-            {
-                level: "Advanced",
-                question: "What shortcut performs a Ripple Delete?",
-                options: ["Delete", "Shift + Delete", "Ctrl + Delete", "Alt + Delete"],
-                correct: 1
-            },
-            {
-                level: "Advanced",
-                question: "Which shortcut opens the Match Frame?",
-                options: ["M", "F", "Shift + F", "Ctrl + F"],
-                correct: 1
-            },
-            {
-                level: "Advanced",
-                question: "What is the shortcut for Reverse Match Frame?",
-                options: ["Shift + R", "Ctrl + R", "Alt + R", "R"],
-                correct: 0
-            },
-            {
-                level: "Advanced",
-                question: "How do you Extend Selected Edit to Playhead?",
-                options: ["Shift + E", "E", "Ctrl + E", "Alt + E"],
-                correct: 1
-            },
-            {
-                level: "Advanced",
-                question: "What shortcut applies the Default Video Transition?",
-                options: ["Ctrl + T", "Ctrl + D", "Ctrl + Shift + D", "Shift + D"],
-                correct: 1
-            },
-            {
-                level: "Advanced",
-                question: "What shortcut selects the Clip at Playhead?",
-                options: ["S", "C", "D", "Shift + C"],
-                correct: 2
-            },
-            {
-                level: "Advanced",
-                question: "Which shortcut opens Speed/Duration settings?",
-                options: ["Ctrl + D", "Ctrl + R", "R", "Ctrl + Shift + R"],
-                correct: 1
-            },
-            {
-                level: "Advanced",
-                question: "What shortcut creates a Make Subclip?",
-                options: ["Ctrl + U", "Ctrl + S", "U", "Shift + U"],
-                correct: 0
-            },
-            {
-                level: "Advanced",
-                question: "What is the shortcut to Extract (with ripple)?",
-                options: [";", "'", "Delete", "Shift + Delete"],
-                correct: 1
-            },
-            {
-                level: "Advanced",
-                question: "What is the shortcut to Lift (without ripple)?",
-                options: [";", "'", "Delete", "Shift + Delete"],
-                correct: 0
+        // --- UI Logic ---
+        function toggleBtn(btn) {
+            btn.classList.toggle('active');
+        }
+
+        // --- Helper: Build Answer String ---
+        // Reads the state of buttons + input box for a specific question ID
+        function getUserAnswer(wrapperId, keyInputId) {
+            const wrapper = document.getElementById(wrapperId);
+            const btns = wrapper.querySelectorAll('.mod-btn');
+            const keyInput = document.getElementById(keyInputId).value.trim().toLowerCase();
+
+            let ctrl = btns[0].classList.contains('active');
+            let alt = btns[1].classList.contains('active');
+            let shift = btns[2].classList.contains('active');
+
+            let parts = [];
+            if (ctrl) parts.push('ctrl');
+            if (shift) parts.push('shift'); // Standard order often puts shift before alt
+            if (alt) parts.push('alt');
+            
+            parts.push(keyInput);
+            return parts.join('+');
+        }
+
+        // --- Level 1 Logic ---
+        function checkLevel1() {
+            let errors = 0;
+
+            // Correct Answers Map (Format: ctrl+shift+key)
+            // Note: Our logic builds string as ctrl+shift+alt+key
+            const key = {
+                1: "v", // Select
+                2: "ctrl+k", // Cut
+                3: "ctrl+shift+k", // Cut Through
+                4: "ctrl+c", // Copy
+                5: "ctrl+v", // Paste
+                6: "m", // Marker
+                8: "ctrl+l", // Link
+                10: "i", // In
+                11: "o", // Out
+                12: "ctrl+m" // Export
+            };
+
+            // Validate Shortcuts
+            for (let [qNum, correctAns] of Object.entries(key)) {
+                let userAns = getUserAnswer(`q${qNum}_wrapper`, `a${qNum}_key`);
+                let wrapper = document.getElementById(`q${qNum}_wrapper`);
+                
+                if (userAns !== correctAns) {
+                    errors++;
+                    wrapper.style.border = "1px solid var(--error)";
+                } else {
+                    wrapper.style.border = "1px solid var(--success)";
+                }
             }
+
+            // Validate Multiple Choice
+            // Q7
+            let q7 = document.querySelector('input[name="marker_def"]:checked');
+            let q7wrap = document.getElementById('q7_wrapper');
+            if(!q7 || q7.value !== 'correct') {
+                errors++;
+                q7wrap.style.border = "1px solid var(--error)";
+            } else {
+                q7wrap.style.border = "1px solid var(--success)";
+            }
+
+            // Q9
+            let q9 = document.querySelector('input[name="link_def"]:checked');
+            let q9wrap = document.getElementById('q9_wrapper');
+            if(!q9 || q9.value !== 'correct') {
+                errors++;
+                q9wrap.style.border = "1px solid var(--error)";
+            } else {
+                q9wrap.style.border = "1px solid var(--success)";
+            }
+
+            // Final Tally
+            const resultDiv = document.getElementById('result-lvl1');
+            if (errors === 0) {
+                resultDiv.innerHTML = "PERFECT! Level 2 Unlocked.";
+                resultDiv.style.backgroundColor = "rgba(76, 175, 80, 0.2)";
+                resultDiv.style.color = "#88ff88";
+                
+                document.getElementById('locked-msg').style.display = 'none';
+                let lvl2 = document.getElementById('level-2');
+                lvl2.style.display = 'block';
+                // Trigger reflow
+                setTimeout(() => {
+                    lvl2.style.opacity = '1';
+                    lvl2.scrollIntoView({behavior: 'smooth'});
+                }, 100);
+            } else {
+                resultDiv.innerHTML = `You have ${errors} incorrect answers. Review the red boxes.`;
+                resultDiv.style.backgroundColor = "rgba(244, 67, 54, 0.2)";
+                resultDiv.style.color = "#ff8888";
+            }
+        }
+
+        // --- Level 2 Generator & Logic ---
+        // Generating Level 2 HTML via JS to keep the file cleaner, since you saw the pattern above.
+        const level2Questions = [
+            { id: 1, label: "Create New Sequence", correct: "ctrl+n" },
+            { id: 2, label: "Import Media", correct: "ctrl+i" },
+            { id: 3, label: "Zoom to show all (Timeline)", correct: "\\" },
+            { id: 4, label: "Ripple Edit Tool", correct: "b" },
+            { id: 5, label: "Ripple Delete", correct: "shift+delete" }, // Note: User needs to type 'delete' or we handle special key? let's assume they type 'delete'
+            { id: 6, label: "Speed/Duration", correct: "ctrl+r" },
+            { id: 7, label: "Match Frame", correct: "f" },
+            { id: 8, label: "Render Effects", correct: "enter" },
+            { id: 9, label: "Clear In and Out", correct: "ctrl+shift+x" },
+            { id: 10, label: "Track Height (Expand)", correct: "shift+=" } // Assuming + key
         ];
 
-        let currentQuestion = 0;
-        let score = 0;
-        let selectedAnswer = null;
-        let levelScores = {
-            Essential: { correct: 0, total: 12 },
-            Intermediate: { correct: 0, total: 9 },
-            Advanced: { correct: 0, total: 10 }
-        };
-
-        function updateProgressBar() {
-            const progress = ((currentQuestion + 1) / questions.length) * 100;
-            document.getElementById('progressBar').style.width = progress + '%';
+        function initLevel2() {
+            const container = document.getElementById('level-2-questions');
+            level2Questions.forEach(q => {
+                let html = `
+                <div class="question-block" id="l2q${q.id}_wrapper">
+                    <div class="question-label">${q.id}. ${q.label}</div>
+                    <div class="shortcut-interface">
+                        <button class="mod-btn" onclick="toggleBtn(this)">Ctrl/Cmd</button>
+                        <span class="plus-sign">+</span>
+                        <button class="mod-btn" onclick="toggleBtn(this)">Alt/Opt</button>
+                        <span class="plus-sign">+</span>
+                        <button class="mod-btn" onclick="toggleBtn(this)">Shift</button>
+                        <span class="plus-sign">+</span>
+                        <input type="text" class="key-input" id="l2a${q.id}_key" style="width: 80px;">
+                    </div>
+                </div>`;
+                container.innerHTML += html;
+            });
         }
+        initLevel2();
 
-        function getLevelClass(level) {
-            if (level === "Essential") return "level-essential";
-            if (level === "Intermediate") return "level-intermediate";
-            return "level-advanced";
-        }
+        function checkLevel2() {
+            let score = 0;
+            level2Questions.forEach(q => {
+                let userAns = getUserAnswer(`l2q${q.id}_wrapper`, `l2a${q.id}_key`);
+                let wrapper = document.getElementById(`l2q${q.id}_wrapper`);
 
-        function renderQuestion() {
-            const q = questions[currentQuestion];
-            const questionNum = currentQuestion + 1;
-            
-            let html = '<div class="level-badge ' + getLevelClass(q.level) + '">' + q.level + '</div>';
-            html += '<div class="question-number">Question ' + questionNum + ' of ' + questions.length + '</div>';
-            html += '<div class="question">' + q.question + '</div>';
-            html += '<div class="options">';
-
-            for (let i = 0; i < q.options.length; i++) {
-                html += '<div class="option" onclick="selectAnswer(' + i + ')" id="option' + i + '">' + q.options[i] + '</div>';
-            }
-
-            html += '</div>';
-            html += '<button class="next-btn" id="nextBtn" onclick="nextQuestion()" disabled>Next Question</button>';
-            html += '<div class="score-display">Current Score: <span class="score-number">' + score + ' / ' + currentQuestion + '</span></div>';
-
-            document.getElementById('content').innerHTML = html;
-            updateProgressBar();
-        }
-
-        function selectAnswer(index) {
-            if (selectedAnswer !== null) return;
-
-            selectedAnswer = index;
-            const q = questions[currentQuestion];
-            const isCorrect = index === q.correct;
-
-            if (isCorrect) {
-                score++;
-                levelScores[q.level].correct++;
-            }
-
-            const options = document.querySelectorAll('.option');
-            for (let i = 0; i < options.length; i++) {
-                if (i === q.correct) {
-                    options[i].classList.add('correct');
-                } else if (i === index && !isCorrect) {
-                    options[i].classList.add('incorrect');
+                // Loose checking for symbols
+                if(q.correct === userAns) {
+                    score++;
+                    wrapper.style.border = "1px solid var(--success)";
+                } else {
+                    wrapper.style.border = "1px solid var(--error)";
                 }
-                options[i].classList.add('disabled');
-            }
+            });
 
-            document.getElementById('nextBtn').disabled = false;
-        }
-
-        function checkLevelComplete() {
-            if (currentQuestion === 12) {
-                const essentialScore = levelScores.Essential.correct;
-                const essentialTotal = levelScores.Essential.total;
-                
-                if (essentialScore < essentialTotal) {
-                    showLevelFailed();
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        function showLevelFailed() {
-            const essentialScore = levelScores.Essential.correct;
-            const essentialTotal = levelScores.Essential.total;
-            
-            let html = '<div class="results">';
-            html += '<div class="icon">❌</div>';
-            html += '<h2>Essential Level Not Complete</h2>';
-            html += '<div class="final-score">' + essentialScore + ' / ' + essentialTotal + '</div>';
-            html += '<div class="message">You must get ALL Essential questions correct before moving to the next level!</div>';
-            html += '<div class="breakdown">';
-            html += '<p style="color: #666; margin-bottom: 20px;">Review the shortcuts and try again. You can do this!</p>';
-            html += '</div>';
-            html += '<button class="retry-btn" onclick="restartQuiz()">Start Over</button>';
-            html += '</div>';
-            document.getElementById('content').innerHTML = html;
-        }
-
-        function nextQuestion() {
-            selectedAnswer = null;
-            currentQuestion++;
-
-            if (currentQuestion === 12) {
-                if (!checkLevelComplete()) {
-                    return;
-                }
-                showLevelComplete("Essential");
-                return;
-            }
-
-            if (currentQuestion === 21) {
-                showLevelComplete("Intermediate");
-                return;
-            }
-
-            if (currentQuestion < questions.length) {
-                renderQuestion();
+            const resultDiv = document.getElementById('result-lvl2');
+            if(score === level2Questions.length) {
+                resultDiv.innerHTML = "🎉 MASTER EDITOR STATUS ACHIEVED! 🎉";
+                resultDiv.style.backgroundColor = "rgba(76, 175, 80, 0.2)";
+                resultDiv.style.color = "#88ff88";
             } else {
-                showResults();
+                resultDiv.innerHTML = `Score: ${score} / ${level2Questions.length}`;
+                resultDiv.style.backgroundColor = "rgba(244, 67, 54, 0.2)";
+                resultDiv.style.color = "#ff8888";
             }
         }
 
-        function showLevelComplete(level) {
-            const nextLevel = level === "Essential" ? "Intermediate" : "Advanced";
-            let html = '<div class="level-complete">';
-            html += '<div class="icon">🎉</div>';
-            html += '<h3>' + level + ' Level Complete!</h3>';
-            html += '<p>Perfect score! You\'ve mastered the ' + level + ' shortcuts!</p>';
-            html += '<button class="next-btn" onclick="continueToNextLevel()">Continue to ' + nextLevel + ' Level</button>';
-            html += '</div>';
-            document.getElementById('content').innerHTML = html;
-        }
-
-        function continueToNextLevel() {
-            renderQuestion();
-        }
-
-        function showResults() {
-            const percentage = (score / questions.length) * 100;
-            let message = "";
-            
-            if (percentage >= 90) message = "Outstanding! You're a Premiere Pro master!";
-            else if (percentage >= 75) message = "Excellent work! You know your shortcuts well!";
-            else if (percentage >= 60) message = "Good job! Keep practicing to improve!";
-            else message = "Keep learning! Practice these shortcuts daily!";
-
-            let html = '<div class="results">';
-            html += '<div class="icon">🏆</div>';
-            html += '<h2>Quiz Complete!</h2>';
-            html += '<div class="final-score">' + score + ' / ' + questions.length + '</div>';
-            html += '<div class="message">' + message + '</div>';
-            html += '<div class="breakdown">';
-            html += '<h3>Score Breakdown:</h3>';
-            html += '<div class="breakdown-item"><span>Essential Questions:</span><strong>' + levelScores.Essential.correct + ' / ' + levelScores.Essential.total + '</strong></div>';
-            html += '<div class="breakdown-item"><span>Intermediate Questions:</span><strong>' + levelScores.Intermediate.correct + ' / ' + levelScores.Intermediate.total + '</strong></div>';
-            html += '<div class="breakdown-item"><span>Advanced Questions:</span><strong>' + levelScores.Advanced.correct + ' / ' + levelScores.Advanced.total + '</strong></div>';
-            html += '</div>';
-            html += '<button class="retry-btn" onclick="restartQuiz()">Try Again</button>';
-            html += '</div>';
-            document.getElementById('content').innerHTML = html;
-        }
-
-        function restartQuiz() {
-            currentQuestion = 0;
-            score = 0;
-            selectedAnswer = null;
-            levelScores = {
-                Essential: { correct: 0, total: 12 },
-                Intermediate: { correct: 0, total: 9 },
-                Advanced: { correct: 0, total: 10 }
-            };
-            renderQuestion();
-        }
-
-        renderQuestion();
     </script>
 </body>
 </html>
