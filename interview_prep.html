@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Flashcards: Learning Design Developer</title>
+    <style>
+        :root {
+            --primary: #005ea5; /* HMRC-ish Blue */
+            --secondary: #0b0c0c;
+            --bg: #f3f2f1;
+            --card-bg: #ffffff;
+            --text: #0b0c0c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #505a5f;
+            font-size: 0.9rem;
+        }
+
+        /* Card Container */
+        .scene {
+            width: 100%;
+            max-width: 600px;
+            height: 400px;
+            perspective: 1000px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+
+        .card.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            box-sizing: border-box;
+            background-color: var(--card-bg);
+            overflow-y: auto; /* Allow scrolling for long content */
+        }
+
+        /* Front Styling */
+        .card-front {
+            border-top: 5px solid var(--primary);
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 1.4rem;
+            text-align: center;
+        }
+
+        .card-front small {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 15px;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Back Styling */
+        .card-back {
+            transform: rotateY(180deg);
+            background-color: #fff;
+            border-top: 5px solid #28a745;
+            align-items: flex-start; /* Align text to left */
+            justify-content: flex-start; /* Start from top */
+        }
+
+        .card-back ul {
+            text-align: left;
+            padding-left: 20px;
+            margin: 0;
+            line-height: 1.6;
+            color: var(--text);
+        }
+
+        .card-back li {
+            margin-bottom: 10px;
+        }
+
+        .instruction {
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #999;
+            left: 0;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        button {
+            padding: 12px 24px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: #004d88;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .counter {
+            font-weight: bold;
+            color: #505a5f;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 600px) {
+            .scene { height: 500px; } /* Taller for mobile to fit text */
+            .card-front { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Interview Prep</h1>
+        <p>Counter Fraud Academy Learning Design Developer</p>
+    </div>
+
+    <div class="scene">
+        <div class="card" onclick="flipCard()">
+            <div class="card-face card-front">
+                <div id="front-content">Loading...</div>
+                <div class="instruction">Tap to flip</div>
+            </div>
+            <div class="card-face card-back">
+                <ul id="back-content"></ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button id="prevBtn" onclick="prevCard()">Previous</button>
+        <span class="counter" id="counter">1 / 20</span>
+        <button id="nextBtn" onclick="nextCard()">Next</button>
+    </div>
+
+    <script>
+        const flashcards = [
+            {
+                category: "Experience",
+                question: "Tell us about your experience creating learning content.",
+                answer: [
+                    "Lecturer at two colleges (Level 2 & 3 Creative Digital Media).",
+                    "Transformed technical concepts into accessible learning materials/workshops.",
+                    "Developed engaging content for diverse learners (including EHCP).",
+                    "Created 10 professional training videos for ProVeg (multi-camera).",
+                    "Year-long experience with GoAnimate creating NHS interactive courses.",
+                    "Self-taught Storyline 360 specifically for this role."
+                ]
+            },
+            {
+                category: "Experience",
+                question: "What experience do you have working with stakeholders?",
+                answer: [
+                    "Collaborated with Macclesfield College learning support (EHCP targets).",
+                    "Managed educational vs. commercial objectives for ProVeg charity.",
+                    "Partnered with students for work experience on professional shoots.",
+                    "Collaborated with art directors/brands (Acer, Red Bull) at We Are Social.",
+                    "Actively responded to student feedback to develop new briefs (Music Video)."
+                ]
+            },
+            {
+                category: "Experience",
+                question: "How have you adapted content for different audiences?",
+                answer: [
+                    "Differentiated approaches for EHCP/SEND and challenging cohorts.",
+                    "Adapted content for ability levels (Level 2 vs Level 3).",
+                    "Developed platform-specific content (YouTube, TikTok, Instagram) at MoneyNerd.",
+                    "Simplified complex financial topics for general audiences (Scriptwriting)."
+                ]
+            },
+            {
+                category: "Technical Skills",
+                question: "Describe your proficiency with Microsoft 365 applications.",
+                answer: [
+                    "Extensive use of Office/Google suite for teaching/content creation.",
+                    "Created presentations, course materials, and documentation.",
+                    "Managed organization for 200+ video assets (standardised naming).",
+                    "Developed lesson plans using MS apps.",
+                    "Self-taught Storyline 360 (shows ability to master software quickly)."
+                ]
+            },
+            {
+                category: "Technical Skills",
+                question: "What e-learning tools and video editing software have you used?",
+                answer: [
+                    "GoAnimate: Interactive courses for NHS (1 year exp).",
+                    "Adobe Premiere Pro: Professional editing (MoneyNerd, ProVeg).",
+                    "After Effects: Graphics and motion graphics.",
+                    "Storyline 360: Self-taught, built presentation/templates.",
+                    "Multi-camera editing, colour correction, and audio sync."
+                ]
+            },
+            {
+                category: "Technical Skills",
+                question: "Do you have experience with AV equipment?",
+                answer: [
+                    "Designed professional multi-cam setups for ProVeg.",
+                    "Managed teleprompter integration and dual-system audio.",
+                    "Directed 5 independent music videos (overseeing all tech).",
+                    "Spearheaded equipment modernisation at Lancaster & Morecambe College.",
+                    "Trained students in camera, lighting, and audio operation."
+                ]
+            },
+            {
+                category: "Behaviour",
+                question: "Give an example of when you've identified an opportunity to improve something and taken action.",
+                answer: [
+                    "<b>Situation:</b> Outdated equipment limiting student readiness.",
+                    "<b>Action:</b> Spearheaded modernisation initiative; bought industry-standard gear; developed multi-cam workshops.",
+                    "<b>Result:</b> Distinctions rose 12% to 30%; Failures dropped 12% to 0%."
+                ]
+            },
+            {
+                category: "Behaviour",
+                question: "Describe a time when you've adapted your approach based on feedback.",
+                answer: [
+                    "<b>Situation:</b> Cohorts with varying interest/engagement.",
+                    "<b>Action:</b> Responded to demand by creating a Music Video production brief; used innovative classroom management.",
+                    "<b>Result:</b> Increased engagement while meeting curriculum objectives."
+                ]
+            },
+            {
+                category: "Learning Theory",
+                question: "What knowledge do you have of learning theories and accessibility regulations?",
+                answer: [
+                    "Award in Education and Training Level 3.",
+                    "Adapted methods for SEND students (EHCP targets).",
+                    "Differentiated approaches for mixed ability levels.",
+                    "Collaborated with learning support teams.",
+                    "Aware of inclusive design standards."
+                ]
+            },
+            {
+                category: "Learning Theory",
+                question: "How do you ensure your content is accessible and user-friendly?",
+                answer: [
+                    "Differentiated teaching approaches.",
+                    "Transforming technical concepts into simple materials.",
+                    "Intuitive navigation and clear graphics (lower thirds).",
+                    "Pacing and visual design for engagement.",
+                    "Learning Storyline 360 with accessibility features in mind."
+                ]
+            },
+            {
+                category: "Innovation",
+                question: "How do you approach creative problem-solving in learning design?",
+                answer: [
+                    "Innovative classroom management for challenging cohorts.",
+                    "Real-world scenarios (Game Show workshops).",
+                    "Efficient workflows using templates/presets.",
+                    "Resourcefulness (finding crews abroad/self-teaching tech)."
+                ]
+            },
+            {
+                category: "Innovation",
+                question: "Give an example of using modern technology innovatively.",
+                answer: [
+                    "ProVeg: Multi-cam setup with teleprompter for training environment.",
+                    "Dual learning: High-quality client content + student experience.",
+                    "Efficient file management systems.",
+                    "Self-teaching Storyline 360 to modernize skillset."
+                ]
+            },
+            {
+                category: "Quality",
+                question: "How do you ensure quality in your work?",
+                answer: [
+                    "Continuous review/evaluation of teaching methods.",
+                    "Meticulous file logging and naming conventions (200+ assets).",
+                    "Meeting both educational and commercial objectives (ProVeg).",
+                    "Track record of measurable grade improvements."
+                ]
+            },
+            {
+                category: "Quality",
+                question: "Describe your experience evaluating learning content.",
+                answer: [
+                    "Adapting materials based on student feedback/performance.",
+                    "Analysing student outcomes (Distinction/Merit rates).",
+                    "Assessment criteria creation for filmmaking.",
+                    "Critical eye developed through GoAnimate and teaching practice."
+                ]
+            },
+            {
+                category: "Teamwork",
+                question: "How do you work effectively in a team environment?",
+                answer: [
+                    "Collaboration with learning support (EHCP).",
+                    "Working with SMEs at ProVeg.",
+                    "Partnering with Art Directors (We Are Social).",
+                    "Mentoring students and managing production crews."
+                ]
+            },
+            {
+                category: "Motivation",
+                question: "What motivates you in your work?",
+                answer: [
+                    "Nurturing creativity in learners.",
+                    "Transforming complex concepts into accessible content.",
+                    "Measurable improvements in outcomes.",
+                    "Learning new tech (Storyline 360).",
+                    "Creating opportunities (student work exp)."
+                ]
+            },
+            {
+                category: "Motivation",
+                question: "To what extent do you agree that the customer's needs should come first?",
+                answer: [
+                    "Strongly agree: Success came from responding to student feedback.",
+                    "Balance: Meet curriculum objectives while serving interests.",
+                    "ProVeg: Balanced commercial needs with educational value.",
+                    "Customer needs drive innovation and creative solutions."
+                ]
+            },
+            {
+                category: "Closing",
+                question: "Why do you want this role?",
+                answer: [
+                    "Intersection of creative production and teaching experience.",
+                    "Desire to apply skills at a larger scale (HMRC/FIS).",
+                    "Passion for making learning accessible via modern tech.",
+                    "Self-taught Storyline 360 specifically for this opportunity.",
+                    "Aligned with HMRC's focus on professional development."
+                ]
+            },
+            {
+                category: "Why HMRC?",
+                question: "Why do you want to work at HMRC / Counter Fraud Academy?",
+                answer: [
+                    "<b>Mission:</b> Contributing to protecting public funding is meaningful work.",
+                    "<b>Innovation:</b> Excited by the Academy's focus on modernizing learning.",
+                    "<b>Scale:</b> Designing for diverse professionals across FIS (vs small classrooms).",
+                    "<b>Development:</b> HMRC values continuous improvement (matches my ethos).",
+                    "<b>Stability:</b> Permanent role allows long-term expertise building."
+                ]
+            },
+            {
+                category: "Tough Question",
+                question: "Why do you want to leave teaching?",
+                answer: [
+                    "<b>Evolution, not escape:</b> I am most energized by the <i>design</i> side of learning, not just delivery.",
+                    "<b>Focus:</b> Moving from juggling part-time roles to a focused, full-time career in learning design.",
+                    "<b>Audience:</b> Excited to design for motivated professionals invested in their development.",
+                    "<b>Skills:</b> Classroom challenges (engagement) made me a better designer, now ready to apply that at scale."
+                ]
+            }
+        ];
+
+        let currentIndex = 0;
+        const cardElement = document.querySelector('.card');
+        const frontContent = document.getElementById('front-content');
+        const backContent = document.getElementById('back-content');
+        const counter = document.getElementById('counter');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function renderCard() {
+            const data = flashcards[currentIndex];
+            
+            // Reset flip state
+            cardElement.classList.remove('is-flipped');
+
+            // Render Front
+            frontContent.innerHTML = `<small>${data.category}</small>${data.question}`;
+
+            // Render Back
+            backContent.innerHTML = data.answer.map(item => `<li>${item}</li>`).join('');
+
+            // Update Counter
+            counter.innerText = `${currentIndex + 1} / ${flashcards.length}`;
+
+            // Update Buttons
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = currentIndex === flashcards.length - 1;
+        }
+
+        function flipCard() {
+            cardElement.classList.toggle('is-flipped');
+        }
+
+        function nextCard() {
+            if (currentIndex < flashcards.length - 1) {
+                currentIndex++;
+                renderCard();
+            }
+        }
+
+        function prevCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderCard();
+            }
+        }
+
+        // Initialize
+        renderCard();
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextCard();
+            if (e.key === 'ArrowLeft') prevCard();
+            if (e.key === ' ' || e.key === 'Enter') flipCard();
+        });
+
+    </script>
+</body>
+</html>
